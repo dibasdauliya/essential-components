@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- <uinl-element class="btn" id="Click me"></uinl-element> -->
+
+    <uinl-button class="btn" id="Click me"></uinl-button>
+
+    <uinl-button class="btn" id="Click me 2" onclick="test()"></uinl-button>
+
+    <uinl-button
+      class="btn"
+      id="Click me 3"
+      style="
+        background-color: beige;
+        color: black;
+        display: inline-block;
+        cursor: pointer;
+      "></uinl-button>
+
+    <uinl-button class="hold" id="Hold me"></uinl-button>
+
+    <uinl-result-log></uinl-result-log>
+
+    <script>
+      function test() {
+        console.log('Hello World')
+      }
+
+      class CustomButton extends HTMLElement {
+        constructor() {
+          super()
+          this.attachShadow({ mode: 'open' })
+          this.startTime = Date.now()
+        }
+
+        connectedCallback() {
+          this.render()
+        }
+
+        getTimeElapsed() {
+          return Date.now() - this.startTime
+        }
+
+        render() {
+          const classAttr = this.getAttribute('class'),
+            id = this.getAttribute('id'),
+            style = this.getAttribute('style')
+
+          if (classAttr === 'btn') {
+            this.shadowRoot.innerHTML = `
+
+            <style>
+              button {
+                ${
+                  style
+                    ? style
+                    : `
+                  background-color: #4CAF50;
+                  padding: 6px;
+                  border-radius: 5px;
+                  border: none;
+                  color: white;
+                  display: inline-block;
+                  cursor: pointer;
+                  `
+                }
+              }
+            </style>
+
+            <button class="${classAttr}" id="${id}">${id}</button>
+            `
+            this.shadowRoot
+              .querySelector('button')
+              .addEventListener('click', () => {
+                const result = {
+                  t: this.getTimeElapsed(),
+                  u: id,
+                  v: true
+                }
+                console.log(result)
+
+                // Find the uinl-result-log element and call its addLog method
+                const resultLog = document.querySelector('uinl-result-log')
+                if (resultLog && typeof resultLog.addLog === 'function') {
+                  resultLog.addLog(result)
+                }
+              })
+          } else if (classAttr === 'hold') {
+            this.shadowRoot.innerHTML = `
+            <button class="${classAttr}">${id}</button>
+            `
+            const button = this.shadowRoot.querySelector('button')
+            button.addEventListener('mousedown', () => {
+              const result = {
+                t: this.getTimeElapsed(),
+                u: id,
+                v: true
+              }
+              console.log(result)
+
+              // Find the uinl-result-log element and call its addLog method
+              const resultLog = document.querySelector('uinl-result-log')
+              if (resultLog && typeof resultLog.addLog === 'function') {
+                resultLog.addLog(result)
+              }
+            })
+
+            button.addEventListener('mouseup', () => {
+              const result = {
+                t: this.getTimeElapsed(),
+                u: id,
+                v: false
+              }
+              console.log(result)
+
+              // Find the uinl-result-log element and call its addLog method
+              const resultLog = document.querySelector('uinl-result-log')
+              if (resultLog && typeof resultLog.addLog === 'function') {
+                resultLog.addLog(result)
+              }
+            })
+          }
+        }
+      }
+
+      customElements.define('uinl-button', CustomButton)
+
+      class ResultLog extends HTMLElement {
+        constructor() {
+          super()
+          this.attachShadow({ mode: 'open' })
+          this.log = {}
+        }
+
+        connectedCallback() {
+          this.render()
+        }
+
+        addLog(log) {
+          this.log = log
+          this.render()
+        }
+
+        clearLog() {
+          this.log = {}
+          this.render()
+        }
+
+        render() {
+          this.shadowRoot.innerHTML = `
+              <style>
+                div {
+                  border: 1px solid #333;
+                  padding: 10px;
+                  margin-top: 10px;
+                }
+               
+                button {
+                  margin-top: 10px;
+                }
+              </style>
+
+            <div>
+                <strong>Result Log</strong>
+            ${`<p>${JSON.stringify(this.log)}</p>`}
+
+                ${
+                  Object.keys(this.log).length > 0
+                    ? `<button id="clear-log">Clear Log</button>`
+                    : ''
+                }
+            </div>
+      `
+
+          this.shadowRoot
+            .querySelector('#clear-log')
+            ?.addEventListener('click', () => {
+              this.clearLog()
+            })
+        }
+      }
+
+      customElements.define('uinl-result-log', ResultLog)
+    </script>
+  </body>
+</html>

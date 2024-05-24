@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/gh/uinl/u1js/u1.min.js"></script>
+    <script>
+      // on start (i.e., when handshake message is received)
+      app.start((event) => {
+        app.display({
+          value: [
+            // value (or v) sets the content value
+            'Hello World!', // 'Hello World!' text label
+            { class: 'btn', id: 'Click Me' } // 'Click Me' button
+          ]
+        })
+      })
+
+      // when button "Click Me" is clicked
+      //   u refers to unique id of user-event target element
+      //   v refers to the value of target element (for a button v:true signifies a click)
+      app.event({ u: 'Click Me', v: true }, (event) => {
+        app.display({
+          add: [
+            // add (or A) adds to current content value
+            'You clicked the button!' // add text label to display
+          ]
+        })
+      })
+    </script>
+  </head>
+  <body></body>
+</html>

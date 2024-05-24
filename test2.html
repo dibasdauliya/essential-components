@@ -1,0 +1,30 @@
+<!-- https://www.youtube.com/watch?v=PCWaFLy3VUo -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h3>Hello World</h3>
+
+    <user-card name="John Doe"></user-card>
+    <user-card name="Yoyo"></user-card>
+
+    <script>
+      class UserCard extends HTMLElement {
+        constructor() {
+          super()
+
+          this.attachShadow({ mode: 'open' })
+
+          this.shadowRoot.innerHTML = `My name is ${this.getAttribute('name')}`
+        }
+      }
+
+      customElements.define('user-card', UserCard)
+    </script>
+  </body>
+</html>
