@@ -8,7 +8,11 @@
   <body>
     <!-- <uinl-element class="btn" id="Click me"></uinl-element> -->
 
-    <uinl-button class="btn" id="Click me"></uinl-button>
+    <uinl-button
+      class="btn"
+      id="Click me"
+      css-file="style.css"
+      js-file="script.js"></uinl-button>
 
     <uinl-button class="btn" id="Click me 2" onclick="test()"></uinl-button>
 
@@ -40,6 +44,7 @@
 
         connectedCallback() {
           this.render()
+          this.loadScript()
         }
 
         getTimeElapsed() {
@@ -49,28 +54,24 @@
         render() {
           const classAttr = this.getAttribute('class'),
             id = this.getAttribute('id'),
-            style = this.getAttribute('style')
+            style = this.getAttribute('style'),
+            cssFile = this.getAttribute('css-file')
 
           if (classAttr === 'btn') {
             this.shadowRoot.innerHTML = `
-
             <style>
-              button {
+              .btn {
                 ${
                   style
                     ? style
                     : `
                   background-color: #4CAF50;
-                  padding: 6px;
-                  border-radius: 5px;
-                  border: none;
-                  color: white;
-                  display: inline-block;
-                  cursor: pointer;
                   `
                 }
               }
             </style>
+
+            ${cssFile ? `<link rel="stylesheet" href="${cssFile}">` : ''}
 
             <button class="${classAttr}" id="${id}">${id}</button>
             `
@@ -124,6 +125,15 @@
                 resultLog.addLog(result)
               }
             })
+          }
+        }
+
+        loadScript() {
+          const jsFile = this.getAttribute('js-file')
+          if (jsFile) {
+            const script = document.createElement('script')
+            script.src = jsFile
+            document.body.appendChild(script)
           }
         }
       }
