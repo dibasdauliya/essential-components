@@ -7,6 +7,7 @@
   </head>
   <body>
     <!-- <uinl-element class="btn" id="Click me"></uinl-element> -->
+    <h1>Buttons</h1>
 
     <uinl-button
       class="btn"
@@ -196,6 +197,108 @@
       }
 
       customElements.define('uinl-result-log', ResultLog)
+    </script>
+
+    <h1>Headings</h1>
+
+    <uinl-heading class="heading-1" css-file="style.css">
+      This is heading 1
+    </uinl-heading>
+
+    <uinl-heading class="heading-1" bg-img="./img/image.png">
+      This is heading 2
+    </uinl-heading>
+
+    <uinl-heading
+      class="heading-1"
+      id="heading-2"
+      type="gradient"
+      gradient-color="red;violet;blue">
+      This is heading 2
+    </uinl-heading>
+
+    <script>
+      class CustomHeading extends HTMLElement {
+        constructor() {
+          super()
+          this.attachShadow({ mode: 'open' })
+          this.startTime = Date.now()
+        }
+
+        connectedCallback() {
+          this.render()
+          this.loadScript()
+        }
+
+        getTimeElapsed() {
+          return Date.now() - this.startTime
+        }
+
+        render() {
+          const classAttr = this.getAttribute('class') || '',
+            id = this.getAttribute('id') || '',
+            initialStyle = this.getAttribute('style') || '',
+            cssFile = this.getAttribute('css-file'),
+            type = this.getAttribute('type'),
+            gradientColor = this.getAttribute('gradient-color')
+              ? this.getAttribute('gradient-color').split(';')
+              : [],
+            bgImg = this.getAttribute('bg-img')
+
+          let style = initialStyle
+
+          if (type === 'gradient' && gradientColor.length) {
+            style += `
+        background: linear-gradient(to right, ${gradientColor.join(',')});
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        `
+          }
+
+          if (bgImg) {
+            style += `
+            background-image: url(${bgImg});
+            background-size: cover;
+            background-position: center;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          `
+          }
+
+          const styleElement = document.createElement('style')
+          styleElement.textContent = `
+      .${classAttr} {
+        ${style}
+      }
+    `
+
+          this.shadowRoot.appendChild(styleElement)
+
+          if (cssFile) {
+            const linkElement = document.createElement('link')
+            linkElement.setAttribute('rel', 'stylesheet')
+            linkElement.setAttribute('href', cssFile)
+            this.shadowRoot.appendChild(linkElement)
+          }
+
+          const headingElement = document.createElement('h1')
+          headingElement.className = classAttr
+          headingElement.id = id
+          headingElement.textContent = this.textContent
+          this.shadowRoot.appendChild(headingElement)
+        }
+
+        loadScript() {
+          const jsFile = this.getAttribute('js-file')
+          if (jsFile) {
+            const script = document.createElement('script')
+            script.src = jsFile
+            document.body.appendChild(script)
+          }
+        }
+      }
+
+      customElements.define('uinl-heading', CustomHeading)
     </script>
   </body>
 </html>
