@@ -205,8 +205,16 @@
       This is heading 1
     </uinl-heading>
 
-    <uinl-heading class="heading-1" bg-img="./img/image.png">
-      This is heading 2
+    <uinl-heading class="heading-1" bg-img="./img/mountain.avif" style="font-size: 2em;">
+      With background image clipped!
+    </uinl-heading>
+
+    <uinl-heading class="heading-1" show-border="true" border-color="red" fill-color="black">
+      with border
+    </uinl-heading>
+
+    <uinl-heading class="heading-1" show-border="true" border-color="red" stroke-width=".5px">
+      with border
     </uinl-heading>
 
     <uinl-heading
@@ -243,7 +251,11 @@
             gradientColor = this.getAttribute('gradient-color')
               ? this.getAttribute('gradient-color').split(';')
               : [],
-            bgImg = this.getAttribute('bg-img')
+            bgImg = this.getAttribute('bg-img'),
+            showBorder = this.getAttribute('show-border'),
+            borderColor = this.getAttribute('border-color'),
+            fill = this.getAttribute('fill-color'),
+            stroke = this.getAttribute('stroke-width')
 
           let style = initialStyle
 
@@ -262,6 +274,17 @@
             background-position: center;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+          `
+          }
+
+          if (showBorder) {
+            style += `
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: ${fill || 'transparent'};
+             -webkit-text-stroke-width: ${stroke || '1px'};
+             -webkit-text-stroke-color: ${borderColor || 'black'};
+            
+
           `
           }
 
