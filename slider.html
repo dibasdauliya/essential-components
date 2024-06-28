@@ -6,109 +6,167 @@
     <title>Image Compare Slider</title>
 </head>
 <body>
+
+    <image-comparison thumb-color="#fff">
+        <img slot="image1" src="./img/japan-2011-after.jpg" alt="">
+        <img slot="image2" src="./img/japan-2011-before.jpg" alt="">
+    </image-comparison>
+
+
     <image-comparison thumb-color="#fff">
         <img slot="image1" width="500" height="500" src="https://images.unsplash.com/photo-1718819616289-fa0e80c23978?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="">
-      <img slot="image2" width="500" height="500" src="https://images.unsplash.com/photo-1718819807268-56bb797822f0?q=80&w=2792&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="">
+        <img slot="image2" width="500" height="500" src="https://images.unsplash.com/photo-1718819807268-56bb797822f0?q=80&w=2792&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="">
+    </image-comparison>    
+    <p>
+        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Repellendus fugiat debitis porro ea dolore sapiente obcaecati nostrum iure dolores quaerat.
+    </p>
 
-    </image-comparison>
-    </compare-view>
+    <image-comparison thumb-color="#fff">
+        <img slot="image1" width="500" height="500" src="https://images.unsplash.com/photo-1718819616289-fa0e80c23978?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="">
+        <img slot="image2" width="500" height="500" src="https://images.unsplash.com/photo-1718819807268-56bb797822f0?q=80&w=2792&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="">
+    </image-comparison>   
+    
     <script>
         class ImageComparison extends HTMLElement {
-  constructor() {
-    super();
-    const shadow = this.attachShadow({ mode: 'open' });
-    const thumbColor = this.getAttribute('thumb-color') || '#2196F3';
-    shadow.innerHTML = `
-      <style>
-        * {box-sizing: border-box;}
-        .img-comp-container {
-          position: relative;
-          height: 200px;
+            constructor() {
+                super();
+                this.clicked = false;
+            }
+
+            connectedCallback() {
+                const shadow = this.attachShadow({ mode: 'open' });
+                const thumbColor = this.getAttribute('thumb-color') || '#2196F3';
+                const slot1 = this.querySelector('img[slot="image1"]');
+                const slot2 = this.querySelector('img[slot="image2"]');
+                const slot1Height = slot1.getAttribute('height') || 500;
+                const slot2Height = slot2.getAttribute('height') || 500,
+                slot1Width = slot1.getAttribute('width') || 500,
+                slot2Width = slot2.getAttribute('width') || 500;
+
+
+                shadow.innerHTML = `
+                    <style>
+                        * {box-sizing: border-box;}
+                        .img-comp-container {
+                            position: relative;
+                            min-height: ${slot1Height > slot2Height ? slot1Height : slot2Height}px;
+                        }
+                        .img-comp-img {
+                            position: absolute;
+                            width: auto;
+                            height: auto;
+                            overflow: hidden;
+                        }
+                        ::slotted(img) {
+                            display: block;
+                            object-fit: cover;
+                            width: ${slot1Width}px;
+                            height: ${slot1Height}px;
+                        }
+                        .img-comp-slider {
+                            position: absolute;
+                            z-index: 9;
+                            cursor: ew-resize;
+                            width: 40px;
+                            height: 40px;
+                            background-color: ${thumbColor};
+                            opacity: 0.8;
+                            border-radius: 50%;
+                        }
+                    </style>
+                    <div class="img-comp-container">
+                        <div class="img-comp-img">
+                            <slot name="image1"></slot>
+                        </div>
+                        <div class="img-comp-img img-comp-overlay">
+                            <slot name="image2"></slot>
+                        </div>
+                    </div>
+                `;
+
+                this.initComparisons();
+            }
+
+            initComparisons() {
+                const overlays = this.shadowRoot.querySelectorAll(".img-comp-overlay");
+                overlays.forEach(img => this.compareImages(img));
+            }
+
+            compareImages(img) {
+                let slider, w, h;
+                const container = img.closest('.img-comp-container');
+                w = container.offsetWidth;
+                h = container.offsetHeight;
+
+                img.style.width = (w / 2) + "px";
+
+                slider = document.createElement("div");
+                slider.setAttribute("class", "img-comp-slider");
+                container.insertBefore(slider, img);
+
+                slider.style.top = (h / 2) - (slider.offsetHeight / 2) + "px";
+                slider.style.left = (w / 2) - (slider.offsetWidth / 2) + "px";
+
+                const mouseDownHandler = (e) => this.slideReady(e, slider, img, w);
+                const mouseUpHandler = () => this.slideFinish();
+                const mouseMoveHandler = (e) => this.slideMove(e, slider, img, w);
+
+                slider.addEventListener("mousedown", mouseDownHandler);
+                window.addEventListener("mouseup", mouseUpHandler);
+                window.addEventListener("mousemove", mouseMoveHandler);
+
+                slider.addEventListener("touchstart", mouseDownHandler);
+                window.addEventListener("touchend", mouseUpHandler);
+                window.addEventListener("touchmove", mouseMoveHandler);
+
+                // Store references to these handlers for later removal
+                this.mouseMoveHandler = mouseMoveHandler;
+                this.mouseUpHandler = mouseUpHandler;
+                this.mouseDownHandler = mouseDownHandler;
+            }
+
+            slideReady(e, slider, img, w) {
+                e.preventDefault();
+                this.clicked = true;
+            }
+
+            slideFinish() {
+                this.clicked = false;
+            }
+
+            slideMove(e, slider, img, w) {
+                if (!this.clicked) return;
+                let pos = this.getCursorPos(e, img);
+
+                const mainContainer = slider.closest('.img-comp-container');
+                const mainContainerPosition = mainContainer.getBoundingClientRect();
+
+                if (pos.x < mainContainerPosition.left || pos.x > mainContainerPosition.right) return;
+
+                if (pos.x < 0) pos.x = 0;
+                if (pos.x > w) pos.x = w;
+
+                img.style.width = pos.x + "px";
+                slider.style.left = img.offsetWidth - (slider.offsetWidth / 2) + "px";
+            }
+
+            getCursorPos(e, img) {
+                let x = 0;
+                e = e.changedTouches ? e.changedTouches[0] : e;
+                const rect = img.getBoundingClientRect();
+                x = e.pageX - rect.left - window.pageXOffset;
+                return { x };
+            }
+
+            disconnectedCallback() {
+                window.removeEventListener("mousemove", this.mouseMoveHandler);
+                window.removeEventListener("touchmove", this.mouseMoveHandler);
+                window.removeEventListener("mouseup", this.mouseUpHandler);
+                window.removeEventListener("touchend", this.mouseUpHandler);
+            }
         }
-        .img-comp-img {
-          position: absolute;
-          width: auto;
-          height: auto;
-          overflow:hidden;
-        }
-        ::slotted(img) {
-          display:block;
-          object-fit: cover;
-        }
-        .img-comp-slider {
-          position: absolute;
-          z-index:9;
-          cursor: ew-resize;
-          width: 40px;
-          height: 40px;
-          background-color: ${thumbColor};
-          opacity: 0.8;
-          border-radius: 50%;
-        }
-      </style>
-      <div class="img-comp-container">
-        <div class="img-comp-img">
-            <slot name="image1"></slot>
-        </div>
-        <div class="img-comp-img img-comp-overlay">
-            <slot name="image2"></slot>
-        </div>
-      </div>
-    `;
-    this.initComparisons();
-  }
 
-  initComparisons() {
-    const x = this.shadowRoot.querySelectorAll(".img-comp-overlay");
-    x.forEach(img => this.compareImages(img));
-  }
-
-  compareImages(img) {
-    let slider, clicked = 0, w, h;
-    w = img.offsetWidth;
-    h = img.offsetHeight;
-    img.style.width = (w / 2) + "px";
-    slider = document.createElement("DIV");
-    slider.setAttribute("class", "img-comp-slider");
-    img.parentElement.insertBefore(slider, img);
-    slider.style.top = (h / 2) - (slider.offsetHeight / 2) + "px";
-    slider.style.left = (w / 2) - (slider.offsetWidth / 2) + "px";
-    slider.addEventListener("mousedown", (e) => this.slideReady(e, slider, img, w));
-    window.addEventListener("mouseup", () => this.slideFinish(clicked));
-    slider.addEventListener("touchstart", (e) => this.slideReady(e, slider, img, w));
-    window.addEventListener("touchend", () => this.slideFinish(clicked));
-  }
-
-  slideReady(e, slider, img, w) {
-    e.preventDefault();
-    let clicked = 1;
-    slider.addEventListener("mousemove", (e) => this.slideMove(e, clicked, slider, img, w));
-    slider.addEventListener("touchmove", (e) => this.slideMove(e, clicked, slider, img, w));
-  }
-
-  slideFinish(clicked) {
-    clicked = 0;
-  }
-
-  slideMove(e, clicked, slider, img, w) {
-    if (clicked == 0) return false;
-    let pos = this.getCursorPos(e, img);
-    if (pos < 0) pos = 0;
-    if (pos > w) pos = w;
-    img.style.width = pos + "px";
-    slider.style.left = img.offsetWidth - (slider.offsetWidth / 2) + "px";
-  }
-
-  getCursorPos(e, img) {
-    let a, x = 0;
-    e = e.changedTouches ? e.changedTouches[0] : e;
-    a = img.getBoundingClientRect();
-    x = e.pageX - a.left - window.pageXOffset;
-    return x;
-  }
-}
-
-customElements.define('image-comparison', ImageComparison);
+        customElements.define('image-comparison', ImageComparison);
     </script>
 </body>
 </html>
