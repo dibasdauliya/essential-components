@@ -1,0 +1,11 @@
+- add dark/light mode (a icon button component). when clicked it switches.
+- add button varients
+- add tab functions - bootstrap, shadcn
+- tooltip
+- popover - https://getbootstrap.com/docs/5.3/components/popovers/
+- progressbar - https://getbootstrap.com/docs/5.3/components/progress/
+- charts like as of sure payroll
+- accordian
+
+- figure out to publish in npm
+- documentation
