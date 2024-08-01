@@ -1,0 +1,24 @@
+{
+  "name": "essential-components",
+  "version": "1.0.0",
+  "description": "HTML Web Components Made Easy!",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dibasdauliya/essential-components.git"
+  },
+  "keywords": [
+    "web",
+    "components",
+    "components"
+  ],
+  "author": "Dibas Dauliya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dibasdauliya/essential-components/issues"
+  },
+  "homepage": "https://github.com/dibasdauliya/essential-components#readme"
+}
