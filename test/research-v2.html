@@ -221,7 +221,8 @@
       class="heading-1"
       id="heading-2"
       type="gradient"
-      gradient-color="red;violet;blue">
+      gradient-color="blue;indigo;violet"
+      >
       This is heading 2
     </essential-heading>
 
@@ -261,10 +262,12 @@
 
           if (type === 'gradient' && gradientColor.length) {
             style += `
-        background: linear-gradient(to right, ${gradientColor.join(',')});
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        `
+                background: linear-gradient(to right, ${gradientColor.join(', ')});
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                display: inline-block;
+              `
+            // console.log('Gradient style applied:', style)
           }
 
           if (bgImg) {

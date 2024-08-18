@@ -1,3 +1,5 @@
+import {EssentialHeaderBorder, EssentialHeaderGradient} from '@site/src/components/essential-heading';
+
 # Essential Heading
 
 The `<essential-heading>` component is a customizable web component designed to create visually striking headings with various styling options. It's perfect for adding emphasis and design flair to your web pages.
@@ -42,9 +44,11 @@ After importing, you can use the `<essential-heading>` component in your HTML or
 
 ```html
 <essential-heading class="heading-1" show-border="true" border-color="red" fill-color="black">
-  with border
+  With border
 </essential-heading>
 ```
+
+<EssentialHeaderBorder/>
 
 ### Gradient Text
 
@@ -57,6 +61,8 @@ After importing, you can use the `<essential-heading>` component in your HTML or
   This is heading 2
 </essential-heading>
 ```
+
+<EssentialHeaderGradient/>
 
 ## Attributes
 
@@ -93,8 +99,8 @@ After importing, you can use the `<essential-heading>` component in your HTML or
 3. **Heading with Border:**
 
    ```html
-   <essential-heading class="heading-1" show-border="true" border-color="red" fill-color="black">
-     with border
+   <essential-heading class="heading-1" show-border="true" border-color="orange" fill-color="#ddd">
+      with border
    </essential-heading>
    ```
 
@@ -127,7 +133,6 @@ This component should work in all modern browsers that support [Custom Elements]
 When using this component, consider the following accessibility aspects:
 
 - Ensure that text remains legible with the applied styles.
-- Provide alternative text for background images if they convey meaningful information.
 - Ensure proper contrast ratios, especially when using gradient or background images.
 
 ## Performance

@@ -33,10 +33,12 @@ class CustomHeading extends HTMLElement {
 
       if (type === 'gradient' && gradientColor.length) {
         style += `
-    background: linear-gradient(to right, ${gradientColor.join(',')});
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    `
+            background: linear-gradient(to right, ${gradientColor.join(', ')});
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+          `
+        // console.log('Gradient style applied:', style)
       }
 
       if (bgImg) {
@@ -55,8 +57,6 @@ class CustomHeading extends HTMLElement {
         -webkit-text-fill-color: ${fill || 'transparent'};
          -webkit-text-stroke-width: ${stroke || '1px'};
          -webkit-text-stroke-color: ${borderColor || 'black'};
-        
-
       `
       }
 

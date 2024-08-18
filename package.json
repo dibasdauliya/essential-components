@@ -1,6 +1,6 @@
 {
   "name": "essential-components",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "HTML Web Components Made Easy!",
   "main": "main.js",
   "types": "main.d.ts",
