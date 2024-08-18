@@ -201,29 +201,29 @@
 
     <h1>Headings</h1>
 
-    <uinl-heading class="heading-1" css-file="style.css">
+    <essential-heading class="heading-1" css-file="style.css">
       This is heading 1
-    </uinl-heading>
+    </essential-heading>
 
-    <uinl-heading class="heading-1" bg-img="./img/mountain.avif" style="font-size: 2em;">
+    <essential-heading class="heading-1" bg-img="./img/mountain.avif" style="font-size: 2em;">
       With background image clipped!
-    </uinl-heading>
+    </essential-heading>
 
-    <uinl-heading class="heading-1" show-border="true" border-color="red" fill-color="black">
+    <essential-heading class="heading-1" show-border="true" border-color="red" fill-color="black">
       with border
-    </uinl-heading>
+    </essential-heading>
 
-    <uinl-heading class="heading-1" show-border="true" border-color="red" stroke-width=".5px">
+    <essential-heading class="heading-1" show-border="true" border-color="red" stroke-width=".5px">
       with border
-    </uinl-heading>
+    </essential-heading>
 
-    <uinl-heading
+    <essential-heading
       class="heading-1"
       id="heading-2"
       type="gradient"
       gradient-color="red;violet;blue">
       This is heading 2
-    </uinl-heading>
+    </essential-heading>
 
     <script>
       class CustomHeading extends HTMLElement {
@@ -321,7 +321,7 @@
         }
       }
 
-      customElements.define('uinl-heading', CustomHeading)
+      customElements.define('essential-heading', CustomHeading)
     </script>
 
     <emoji-hover-wrapper icon="🤩" tag="span">
@@ -332,6 +332,10 @@
 
     <image-hover-wrapper src="./img/mountain.avif" tag="h1">
       hover over me
+    </image-hover-wrapper>
+
+    <image-hover-wrapper src="./img/image.png" tag="button">
+      Click for more!
     </image-hover-wrapper>
 
     <script src="/src/image-hover-wrapper.js"></script>

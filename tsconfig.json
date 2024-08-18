@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "target": "es6",
+      "module": "commonjs",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "jsx": "react"
+    },
+    "include": ["src/**/*", "main.d.ts"]
+  }
+
+//   research if this applies automatically. declaration need to go for import x/src/.. also

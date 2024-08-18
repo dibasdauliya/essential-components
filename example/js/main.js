@@ -1,0 +1,1 @@
+import '../../src/emoji-hover-wrapper.js';

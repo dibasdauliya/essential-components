@@ -1,0 +1,8 @@
+{
+  "label": "Headings",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Group of components that display various types of headings: with border, with fill, with gradient, and more."
+  }
+}

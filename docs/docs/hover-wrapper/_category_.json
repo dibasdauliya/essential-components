@@ -1,0 +1,8 @@
+{
+  "label": "Hover Wrapper",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "A wrapper component that displays an emoji or image when hovered over."
+  }
+}

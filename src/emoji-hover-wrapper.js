@@ -28,7 +28,7 @@ class EmojiHoverWrapper extends HTMLElement {
     }
 
     render() {
-      const icon = this.getAttribute('icon'),
+      const icon = this.getAttribute('icon') || "👋",
         base64Icon = this.emojiToBase64(icon),
         tag = this.getAttribute('tag')
       

@@ -1,11 +1,13 @@
 {
   "name": "essential-components",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "HTML Web Components Made Easy!",
   "main": "main.js",
   "types": "main.d.ts",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -21,5 +23,9 @@
   "bugs": {
     "url": "https://github.com/dibasdauliya/essential-components/issues"
   },
-  "homepage": "https://github.com/dibasdauliya/essential-components#readme"
+  "homepage": "https://github.com/dibasdauliya/essential-components#readme",
+  "devDependencies": {
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4"
+  }
 }
