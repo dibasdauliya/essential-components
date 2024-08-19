@@ -102,16 +102,16 @@ const config: Config = {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/essential-components',
-            },
-            {
               label: 'Discord',
               href: 'https://discord.gg/ATNWFCPpkV',
             },
             {
               label: 'Twitter',
               href: 'https://x.com/EssComponents',
+            },
+            {
+              label: 'Stack Overflow',
+              href: 'https://stackoverflow.com/questions/tagged/essential-components',
             },
           ],
         },
