@@ -20,6 +20,7 @@ class ImageComparison extends HTMLElement {
                 * {box-sizing: border-box;}
                 .img-comp-container {
                     position: relative;
+                    width: ${slot1Width}px;
                     min-height: ${slot1Height > slot2Height ? slot1Height : slot2Height}px;
                 }
                 .img-comp-img {
@@ -64,19 +65,33 @@ class ImageComparison extends HTMLElement {
     }
 
     compareImages(img) {
-        let slider, w, h;
         const container = img.closest('.img-comp-container');
-        w = container.offsetWidth;
-        h = container.offsetHeight;
+        const w = container.offsetWidth;
+        const h = container.offsetHeight;
 
         img.style.width = (w / 2) + "px";
 
-        slider = document.createElement("div");
+        const slider = document.createElement("div");
         slider.setAttribute("class", "img-comp-slider");
         container.insertBefore(slider, img);
 
+        // Position the slider in the middle
         slider.style.top = (h / 2) - (slider.offsetHeight / 2) + "px";
         slider.style.left = (w / 2) - (slider.offsetWidth / 2) + "px";
+
+        // let slider, w, h;
+        // const container = img.closest('.img-comp-container');
+        // w = container.offsetWidth;
+        // h = container.offsetHeight;
+
+        // img.style.width = (w / 2) + "px";
+
+        // slider = document.createElement("div");
+        // slider.setAttribute("class", "img-comp-slider");
+        // container.insertBefore(slider, img);
+
+        // slider.style.top = (h / 2) - (slider.offsetHeight / 2) + "px";
+        // slider.style.left = (w / 2) - (slider.offsetWidth / 2) + "px";
 
         const mouseDownHandler = (e) => this.slideReady(e, slider, img, w);
         const mouseUpHandler = () => this.slideFinish();
@@ -108,25 +123,27 @@ class ImageComparison extends HTMLElement {
     slideMove(e, slider, img, w) {
         if (!this.clicked) return;
         let pos = this.getCursorPos(e, img);
+        const container = img.closest('.img-comp-container');
+        const containerRect = container.getBoundingClientRect();
 
-        const mainContainer = slider.closest('.img-comp-container');
-        const mainContainerPosition = mainContainer.getBoundingClientRect();
+        // Ensure pos.x is relative to the container
+        pos.x = e.clientX - containerRect.left;
 
-        if (pos.x < mainContainerPosition.left || pos.x > mainContainerPosition.right) return;
-
+        // Set boundaries
         if (pos.x < 0) pos.x = 0;
-        if (pos.x > w) pos.x = w;
+        if (pos.x > containerRect.width) pos.x = containerRect.width;
 
+        // Set image width
         img.style.width = pos.x + "px";
-        slider.style.left = img.offsetWidth - (slider.offsetWidth / 2) + "px";
+
+        // Adjust slider position
+        const sliderPos = pos.x - (slider.offsetWidth / 2);
+        slider.style.left = Math.max(0, Math.min(sliderPos, containerRect.width - slider.offsetWidth)) + "px";
     }
 
-    getCursorPos(e, img) {
-        let x = 0;
+    getCursorPos(e) {
         e = e.changedTouches ? e.changedTouches[0] : e;
-        const rect = img.getBoundingClientRect();
-        x = e.pageX - rect.left - window.pageXOffset;
-        return { x };
+        return { x: e.clientX };
     }
 
     disconnectedCallback() {
