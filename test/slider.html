@@ -49,6 +49,7 @@
                         * {box-sizing: border-box;}
                         .img-comp-container {
                             position: relative;
+                            width: ${slot1Width}px;
                             min-height: ${slot1Height > slot2Height ? slot1Height : slot2Height}px;
                         }
                         .img-comp-img {
@@ -106,6 +107,20 @@
                 // Position the slider in the middle
                 slider.style.top = (h / 2) - (slider.offsetHeight / 2) + "px";
                 slider.style.left = (w / 2) - (slider.offsetWidth / 2) + "px";
+
+                // let slider, w, h;
+                // const container = img.closest('.img-comp-container');
+                // w = container.offsetWidth;
+                // h = container.offsetHeight;
+
+                // img.style.width = (w / 2) + "px";
+
+                // slider = document.createElement("div");
+                // slider.setAttribute("class", "img-comp-slider");
+                // container.insertBefore(slider, img);
+
+                // slider.style.top = (h / 2) - (slider.offsetHeight / 2) + "px";
+                // slider.style.left = (w / 2) - (slider.offsetWidth / 2) + "px";
 
                 const mouseDownHandler = (e) => this.slideReady(e, slider, img, w);
                 const mouseUpHandler = () => this.slideFinish();
