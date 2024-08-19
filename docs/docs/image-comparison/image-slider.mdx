@@ -1,0 +1,77 @@
+import EssentialImage from '@site/src/components/image-comparison';
+
+# Image Comparison Component
+
+The `<image-comparison>` component is an interactive element that allows users to compare two images side-by-side using a slider. It's perfect for before-and-after comparisons or any scenario where visual differences between two images need to be highlighted.
+
+## Installation
+
+To use the `<image-comparison>` component, ensure you have installed the `essential-components` package in your project.
+
+```bash
+npm install essential-components
+```
+
+## Import
+
+Import the component in your JavaScript or TypeScript file:
+
+```javascript
+import 'essential-components/src/image-comparison';
+```
+
+## Usage/Examples
+
+After importing, you can use the `<image-comparison>` component in your HTML or JSX. Place two `<img>` elements inside the component, using the `slot` attribute to specify which image is which.
+
+```html
+<image-comparison thumb-color="#000">
+  <img slot="image1" src="./img/japan-2011-after.jpg" alt="Japan after 2011">
+  <img slot="image2" src="./img/japan-2011-before.jpg" alt="Japan before 2011">
+</image-comparison>
+```
+
+<EssentialImage/>
+
+## Props
+
+| Prop | Type | Description | Required | Default |
+|------|------|-------------|----------|---------|
+| `thumb-color` | String | The color of the slider thumb. Use any valid CSS color value. | No | `"#fff"` |
+
+## Slots
+
+| Slot Name | Description | Required |
+|-----------|-------------|----------|
+| `image1` | The first image to be compared (typically the "after" image). | Yes |
+| `image2` | The second image to be compared (typically the "before" image). | Yes |
+
+## Behavior
+
+The component displays two images overlaid on each other. A vertical slider separates the images, allowing users to drag left or right to reveal more of one image or the other. The `image1` slot is displayed on the right side of the slider, while `image2` is on the left.
+
+## Styling
+
+The `<image-comparison>` component comes with built-in styles for the slider functionality. You can further customize its appearance using CSS custom properties or by styling the containing element.
+
+## Browser Support
+
+This component should work in all modern browsers that support [Custom Elements](https://caniuse.com/custom-elementsv1) and [Shadow DOM](https://caniuse.com/shadowdomv1).
+
+## Accessibility
+
+Consider the following accessibility implications when using this component:
+
+- Ensure that both images have meaningful `alt` text to describe their content.
+- The slider should be operable via keyboard controls (verify this functionality).
+- Consider adding ARIA attributes if necessary to improve screen reader compatibility.
+
+## Performance
+
+The `<image-comparison>` component is designed to be lightweight, but be mindful of the image sizes used. Large images may impact load times and smooth slider interactions.
+
+## Best Practices
+
+1. Use images of the same dimensions for the best comparison effect.
+2. Ensure the images are properly aligned to make the comparison meaningful.
+3. Choose a `thumb-color` that contrasts well with both images for better visibility.

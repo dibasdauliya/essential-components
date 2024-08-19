@@ -14,12 +14,18 @@ export function EssentialHeaderGradient() {
   return (
     <essential-heading
       class="heading-1"
-      id="heading-2"
       type="gradient"
-      gradient-color="blue;indigo;violet"
+      gradient-color="red;orange;violet"
       >
       This is heading 2
     </essential-heading>
   )
 }
 
+export function EssentialHeaderBgImg() {
+    return (
+        <essential-heading class="heading-1" bg-img="/img/mountain.jpg" style={{fontSize:'2em', fontWeight: 900, lineHeight: 1.2}}>
+         With background image clipped!
+        </essential-heading>
+    )
+}

@@ -1,4 +1,4 @@
-import {EssentialHeaderBorder, EssentialHeaderGradient} from '@site/src/components/essential-heading';
+import {EssentialHeaderBorder, EssentialHeaderBgImg, EssentialHeaderGradient} from '@site/src/components/essential-heading';
 
 # Essential Heading
 
@@ -20,7 +20,7 @@ Import the component in your JavaScript or TypeScript file:
 import 'essential-components/src/essential-heading';
 ```
 
-## Usage
+## Usage and Examples
 
 After importing, you can use the `<essential-heading>` component in your HTML or JSX. This component provides multiple attributes to customize the appearance of your headings.
 
@@ -35,10 +35,12 @@ After importing, you can use the `<essential-heading>` component in your HTML or
 ### With Background Image
 
 ```html
-<essential-heading class="heading-1" bg-img="./img/mountain.avif" style="font-size: 2em;">
+<essential-heading class="heading-1" bg-img="/img/mountain.avif" style="font-size: 2em; font-weight: 900; line-height: 1.2;">
   With background image clipped!
 </essential-heading>
 ```
+
+<EssentialHeaderBgImg/>
 
 ### With Border
 
@@ -55,7 +57,6 @@ After importing, you can use the `<essential-heading>` component in your HTML or
 ```html
 <essential-heading
   class="heading-1"
-  id="heading-2"
   type="gradient"
   gradient-color="red;violet;blue">
   This is heading 2
@@ -77,44 +78,6 @@ After importing, you can use the `<essential-heading>` component in your HTML or
 | `fill-color`     | String | The fill color of the heading text when `show-border` is used.               | No       |
 | `type`           | String | Specifies the type of heading effect, such as `gradient` for gradient text.  | No       |
 | `gradient-color` | String | A semicolon-separated list of colors for gradient text. Requires `type="gradient"`. | No       |
-
-## Examples
-
-1. **Basic Heading:**
-
-   ```html
-   <essential-heading class="heading-1">
-     This is heading 1
-   </essential-heading>
-   ```
-
-2. **Heading with Background Image:**
-
-   ```html
-   <essential-heading class="heading-1" bg-img="./img/mountain.avif" style="font-size: 2em;">
-     With background image clipped!
-   </essential-heading>
-   ```
-
-3. **Heading with Border:**
-
-   ```html
-   <essential-heading class="heading-1" show-border="true" border-color="orange" fill-color="#ddd">
-      with border
-   </essential-heading>
-   ```
-
-4. **Heading with Gradient Text:**
-
-   ```html
-   <essential-heading
-     class="heading-1"
-     id="heading-2"
-     type="gradient"
-     gradient-color="red;violet;blue">
-     This is heading 2
-   </essential-heading>
-   ```
 
 ## Behavior
 
