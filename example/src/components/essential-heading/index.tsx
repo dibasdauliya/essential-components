@@ -46,7 +46,7 @@ export function EssentialHeaderBgImg() {
         return (
           <essential-heading
             class="heading-1"
-            bg-img="/img/mountain.jpg"
+            bg-img="/essential-components/img/mountain.jpg"
             style={{ fontSize: '2em', fontWeight: 900, lineHeight: 1.2 }}
           >
             With background image clipped!

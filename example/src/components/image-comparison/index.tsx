@@ -9,8 +9,8 @@ export default function ImageComparison() {
         import('essential-components/src/image-comparison');
         return (
           <image-comparison thumb-color="#000">
-            <img slot="image1" src="/img/japan-2011-after.jpg" alt="" />
-            <img slot="image2" src="/img/japan-2011-before.jpg" alt="" />
+            <img slot="image1" src="/essential-components/img/japan-2011-after.jpg" alt="" />
+            <img slot="image2" src="/essential-components/img/japan-2011-before.jpg" alt="" />
           </image-comparison>
         );
       }}
