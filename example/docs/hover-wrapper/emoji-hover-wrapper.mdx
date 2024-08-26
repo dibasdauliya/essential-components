@@ -1,3 +1,5 @@
+import {EmojiHoverWrapper} from '@site/src/components/emoji-hover';
+
 # Emoji Hover Wrapper
 
 The `<emoji-hover-wrapper>` component is a versatile element that adds an interactive emoji hover effect to any content. It's perfect for adding a touch of playfulness and engagement to your web applications.
@@ -22,21 +24,6 @@ import 'essential-components/src/emoji-hover-wrapper';
 
 After importing, you can use the `<emoji-hover-wrapper>` component in your HTML or JSX. Wrap it around any content you want to associate with an emoji. The component takes two main props: `icon` and `tag`.
 
-```html
-<emoji-hover-wrapper icon="🤩" tag="span">
-  hover over me
-</emoji-hover-wrapper>
-```
-
-## Props
-
-| Prop | Type | Description | Required |
-|------|------|-------------|----------|
-| `icon` | String | The emoji to display on hover. Use the Unicode representation of the emoji. | Yes |
-| `tag` | String | The HTML tag to use for wrapping the content. | Yes |
-
-## Examples
-
 1. Basic usage with text:
 
    ```html
@@ -44,6 +31,8 @@ After importing, you can use the `<emoji-hover-wrapper>` component in your HTML 
      Hello, World!
    </emoji-hover-wrapper>
    ```
+  
+<EmojiHoverWrapper emoji="😊" content="Hello, World" tag="span" />
 
 2. Using with a button:
 
@@ -53,6 +42,8 @@ After importing, you can use the `<emoji-hover-wrapper>` component in your HTML 
    </emoji-hover-wrapper>
    ```
 
+<EmojiHoverWrapper emoji="👍" content="Click me!" tag="button" />
+
 3. Wrapping a paragraph:
 
    ```html
@@ -61,6 +52,15 @@ After importing, you can use the `<emoji-hover-wrapper>` component in your HTML 
      can be used with block-level elements.
    </emoji-hover-wrapper>
    ```
+
+<EmojiHoverWrapper emoji="📚" content="This is a longer piece of text that demonstrates how the emoji-hover-wrapper can be used with block-level elements." tag="p" />
+
+## Props
+
+| Prop | Type | Description | Required |
+|------|------|-------------|----------|
+| `icon` | String | The emoji to display on hover. Use the Unicode representation of the emoji. | Yes |
+| `tag` | String | The HTML tag to use for wrapping the content. | Yes |
 
 ## Behavior
 
