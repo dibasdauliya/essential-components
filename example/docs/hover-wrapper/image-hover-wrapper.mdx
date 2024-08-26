@@ -1,3 +1,5 @@
+import {ImageHoverWrapper} from '@site/src/components/image-hover';
+
 # Image Hover Wrapper
 
 The `<image-hover-wrapper>` component is an interactive custom element that changes the cursor to an image when hovering over the wrapped content. This is useful for creating engaging visual effects in your web applications.
@@ -22,21 +24,6 @@ import 'essential-components/src/image-hover-wrapper';
 
 After importing, you can use the `<image-hover-wrapper>` component in your HTML or JSX. Wrap it around any content to apply the image hover effect. The component takes two main attributes: `src` and `tag`.
 
-```html
-<image-hover-wrapper src="./img/mountain.avif" tag="h1">
-  hover over me
-</image-hover-wrapper>
-```
-
-## Attributes
-
-| Attribute | Type   | Description                                        | Required |
-|-----------|--------|----------------------------------------------------|----------|
-| `src`     | String | The path to the image file to use as the cursor.    | Yes      |
-| `tag`     | String | The HTML tag to use for wrapping the content.       | Yes      |
-
-## Examples
-
 1. Basic usage with text:
 
    ```html
@@ -44,6 +31,8 @@ After importing, you can use the `<image-hover-wrapper>` component in your HTML 
      Beautiful Sky
    </image-hover-wrapper>
    ```
+
+<ImageHoverWrapper imageName="sky.jpg" content="Beautiful Sky" tag="span" />
 
 2. Using with a button:
 
@@ -53,6 +42,8 @@ After importing, you can use the `<image-hover-wrapper>` component in your HTML 
    </image-hover-wrapper>
    ```
 
+<ImageHoverWrapper imageName="click.png" content="Click for more!" tag="button" />
+
 3. Wrapping a heading:
 
    ```html
@@ -60,6 +51,15 @@ After importing, you can use the `<image-hover-wrapper>` component in your HTML 
      Discover Amazing Landscapes
    </image-hover-wrapper>
    ```
+
+<ImageHoverWrapper imageName="landscape.jpg" content="Discover Amazing Landscapes" tag="h2" />
+
+## Attributes
+
+| Attribute | Type   | Description                                        | Required |
+|-----------|--------|----------------------------------------------------|----------|
+| `src`     | String | The path to the image file to use as the cursor.    | Yes      |
+| `tag`     | String | The HTML tag to use for wrapping the content.       | Yes      |
 
 ## Behavior
 
