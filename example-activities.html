@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activities Widget Example</title>
+    <style>
+        body {
+            height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            font-family: system-ui, sans-serif;
+            line-height: 1.5;
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <activities-widget>
+        <div class="activity">
+            <div class="img">
+                <img src='https://images.unsplash.com/photo-1723274565296-2945e2ebc306?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzMjM4NDZ8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MzI0NzE1OTF8&ixlib=rb-4.0.3&q=80&w=400' alt='Ice Catch Activity'>
+            </div>
+            <div class="text">
+                <h3>Ice Catch</h3>
+                <p>It's like regular catch, but it's on ice so it's cooler literally.</p>
+            </div>
+        </div>
+
+        <div class="activity">
+            <div class="img">
+                <img src='https://images.unsplash.com/photo-1607930232028-f01079639b00?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzMjM4NDZ8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MzI0NzIxMjV8&ixlib=rb-4.0.3&q=80&w=400' alt='Mud Touching Activity'>
+            </div>
+            <div class="text">
+                <h3>Mud Touching</h3>
+                <p>Mud isn't going to touch itself.</p>
+            </div>
+        </div>
+
+        <div class="activity">
+            <div class="img">
+                <img src='https://images.unsplash.com/photo-1677757103853-a304b6a182f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzMjM4NDZ8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MzI1NjgyODB8&ixlib=rb-4.0.3&q=80&w=400' alt='BMX Football Activity'>
+            </div>
+            <div class="text">
+                <h3>BMX Football</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Repellendus enim hic quo amet?</p>
+            </div>
+        </div>
+
+        <div class="activity">
+            <div class="img">
+                <img src='https://images.unsplash.com/photo-1676312830459-f6f13dfdd899?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzMjM4NDZ8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MzI3MjQ5Nzh8&ixlib=rb-4.0.3&q=80&w=400' alt='Shoe Tying Activity'>
+            </div>
+            <div class="text">
+                <h3>Shoe Tying</h3>
+                <p>I love tying shoes. Bunny style. The other bunny style. All the styles.</p>
+            </div>
+        </div>
+    </activities-widget>
+
+    <script type="module" src="./src/activities-widget.js"></script>
+</body>
+</html> 

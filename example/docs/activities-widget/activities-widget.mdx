@@ -1,0 +1,287 @@
+import {ActivitiesWidget} from '@site/src/components/activities-widget';
+
+# Activities Widget
+
+The `<activities-widget>` component is an interactive custom element that displays a carousel-style widget for showcasing activities with images, titles, and descriptions. It features smooth animations, rotation effects, and navigation controls.
+
+## Installation
+
+To use the `<activities-widget>` component, first ensure you have installed the `essential-components` package in your project.
+
+```bash
+npm install essential-components
+```
+
+## Import
+
+Import the component in your JavaScript or TypeScript file:
+
+```javascript
+import 'essential-components/src/activities-widget';
+```
+
+## Usage
+
+After importing, you can use the `<activities-widget>` component in your HTML or JSX. The component expects child elements with the class `activity` that contain an image and text section.
+
+### Basic Example
+
+```html
+<activities-widget>
+    <div class="activity">
+        <div class="img">
+            <img src="ice-catch.jpg" alt="Ice Catch Activity">
+        </div>
+        <div class="text">
+            <h3>Ice Catch</h3>
+            <p>It's like regular catch, but it's on ice so it's cooler literally.</p>
+        </div>
+    </div>
+    
+    <div class="activity">
+        <div class="img">
+            <img src="mud-touching.jpg" alt="Mud Touching Activity">
+        </div>
+        <div class="text">
+            <h3>Mud Touching</h3>
+            <p>Mud isn't going to touch itself.</p>
+        </div>
+    </div>
+    
+    <div class="activity">
+        <div class="img">
+            <img src="bmx-football.jpg" alt="BMX Football Activity">
+        </div>
+        <div class="text">
+            <h3>BMX Football</h3>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+        </div>
+    </div>
+</activities-widget>
+```
+
+### Live Example
+
+<ActivitiesWidget />
+
+## Customization Options
+
+The component now supports various customization attributes:
+
+### Custom Button Text
+
+```html
+<activities-widget prev-text="Back" next-text="Forward">
+    <!-- activities here -->
+</activities-widget>
+```
+
+### Custom Counter Format
+
+```html
+<activities-widget counter-format="Step {current} of {total}">
+    <!-- activities here -->
+</activities-widget>
+```
+
+### Hide Elements
+
+```html
+<!-- Hide counter -->
+<activities-widget hide-counter>
+    <!-- activities here -->
+</activities-widget>
+
+<!-- Hide navigation -->
+<activities-widget hide-nav>
+    <!-- activities here -->
+</activities-widget>
+
+<!-- Hide both -->
+<activities-widget hide-counter hide-nav>
+    <!-- activities here -->
+</activities-widget>
+```
+
+### Compact Mode
+
+```html
+<activities-widget compact>
+    <!-- activities here -->
+</activities-widget>
+```
+
+## Structure
+
+Each activity within the widget should follow this structure:
+
+```html
+<div class="activity">
+    <div class="img">
+        <img src="your-image.jpg" alt="Activity description">
+    </div>
+    <div class="text">
+        <h3>Activity Title</h3>
+        <p>Activity description goes here.</p>
+    </div>
+</div>
+```
+
+## Features
+
+- **🎨 Visual Appeal**: Cards are rotated at different angles for a dynamic look
+- **🔄 Smooth Animations**: "Fly-out" animation when switching between activities
+- **📱 Navigation Controls**: Previous/Next buttons with proper state management
+- **📊 Activity Counter**: Shows current position (e.g., "1 / 4")
+- **♿ Accessible**: Proper ARIA labels and disabled states
+- **📐 Responsive**: Grid-based layout that adapts to content
+- **🎛️ Customizable**: Extensive customization options for text, layout, and behavior
+
+## Attributes
+
+| Attribute | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `prev-text` | String | `←` | Text for the previous button |
+| `next-text` | String | `→` | Text for the next button |
+| `counter-format` | String | `{current} / {total}` | Format for the counter display |
+| `hide-counter` | Boolean | `false` | Hide the activity counter |
+| `hide-nav` | Boolean | `false` | Hide the navigation buttons |
+| `compact` | Boolean | `false` | Use compact layout with smaller dimensions |
+
+### Counter Format Tokens
+
+When using `counter-format`, you can use these tokens:
+- `{current}` - Current activity number
+- `{total}` - Total number of activities
+
+## Styling
+
+The component comes with built-in styling that includes:
+
+- **Grid Layout**: Uses CSS Grid for precise positioning
+- **Image Effects**: White borders, drop shadows, and aspect ratio control
+- **Text Transitions**: Smooth opacity and translate animations
+- **Button States**: Hover effects and disabled styling
+
+### CSS Custom Properties
+
+The component uses CSS custom properties for rotation angles:
+
+- `--rotate`: Controls the rotation angle of each activity card
+- Individual activities get predefined rotation values (4deg, -2deg, -9deg, 7deg)
+
+## Behavior
+
+1. **Initial State**: The first activity is shown as active
+2. **Navigation**: Users can navigate using the arrow buttons
+3. **Animation**: When switching activities:
+   - The current image flies out to the left and returns
+   - The text fades in with a slight upward animation
+   - Button states update to reflect navigation limits
+
+## Browser Support
+
+This component works in all modern browsers that support:
+- [Custom Elements](https://caniuse.com/custom-elementsv1)
+- [Shadow DOM](https://caniuse.com/shadowdomv1)
+- [CSS Grid](https://caniuse.com/css-grid)
+- [CSS Custom Properties](https://caniuse.com/css-variables)
+
+## Accessibility
+
+The component includes several accessibility features:
+
+- **ARIA Labels**: Navigation buttons have descriptive labels
+- **Disabled States**: Buttons are properly disabled when at boundaries
+- **Semantic HTML**: Uses proper heading hierarchy and semantic elements
+- **Keyboard Navigation**: Supports standard button interaction patterns
+
+## Performance
+
+- **Lightweight**: No external dependencies
+- **Efficient**: Uses CSS animations and transitions for smooth performance
+- **Optimized**: Shadow DOM encapsulation prevents style conflicts
+
+## Advanced Examples
+
+### Fully Customized Widget
+
+```html
+<activities-widget 
+    prev-text="Previous" 
+    next-text="Next" 
+    counter-format="Activity {current} of {total}"
+    compact>
+    <div class="activity">
+        <div class="img">
+            <img src="activity1.jpg" alt="First Activity">
+        </div>
+        <div class="text">
+            <h3>First Activity</h3>
+            <p>Description with <strong>rich formatting</strong>.</p>
+        </div>
+    </div>
+    <!-- More activities... -->
+</activities-widget>
+```
+
+### Minimal Widget (No UI Controls)
+
+```html
+<activities-widget hide-counter hide-nav>
+    <div class="activity">
+        <div class="img">
+            <img src="showcase1.jpg" alt="Showcase Item">
+        </div>
+        <div class="text">
+            <h3>Pure Showcase</h3>
+            <p>Display content without navigation controls.</p>
+        </div>
+    </div>
+</activities-widget>
+```
+
+### Rich Content Example
+
+```html
+<activities-widget counter-format="Feature {current}/{total}">
+    <div class="activity">
+        <div class="img">
+            <img src="feature.jpg" alt="Feature">
+        </div>
+        <div class="text">
+            <h3>Advanced Feature</h3>
+            <p>This activity can include:</p>
+            <ul>
+                <li><strong>Rich HTML</strong> content</li>
+                <li><em>Formatted text</em></li>
+                <li>Lists and other elements</li>
+            </ul>
+        </div>
+    </div>
+</activities-widget>
+```
+
+## Dynamic Updates
+
+You can dynamically change the widget's appearance:
+
+```javascript
+const widget = document.querySelector('activities-widget');
+
+// Change button text
+widget.setAttribute('prev-text', '◀ Back');
+widget.setAttribute('next-text', 'Forward ▶');
+
+// Change counter format
+widget.setAttribute('counter-format', 'Page {current} of {total}');
+
+// Toggle compact mode
+widget.toggleAttribute('compact');
+
+// Hide/show elements
+widget.toggleAttribute('hide-counter');
+widget.toggleAttribute('hide-nav');
+```
+
+This component is perfect for showcasing portfolios, product features, team members, or any collection of related items that benefit from an engaging, interactive presentation. 
