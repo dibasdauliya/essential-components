@@ -1,0 +1,209 @@
+import ChatUI from "@site/src/components/chat-ui";
+
+# Chat UI
+
+The `<chat-ui>` component is an interactive custom element that provides a complete chat interface with message display, input field, and automated responses. It features a modern design with gradients, timestamps, and smooth scrolling.
+
+## Installation
+
+To use the `<chat-ui>` component, first ensure you have installed the `essential-components` package in your project.
+
+```bash
+npm install essential-components
+```
+
+## Import
+
+Import the component in your JavaScript or TypeScript file:
+
+```javascript
+import "essential-components/src/chat-ui";
+```
+
+## Usage
+
+After importing, you can use the `<chat-ui>` component in your HTML or JSX. The component works out of the box with no required configuration.
+
+### Basic Example
+
+```html
+<chat-ui></chat-ui>
+```
+
+### With Custom Title and Placeholder
+
+```html
+<chat-ui title="Support Chat" placeholder="How can we help you today?">
+</chat-ui>
+```
+
+### Live Example
+
+<div style={{ display: "flex", justifyContent: "center", margin: "2rem 0" }}>
+  <ChatUI title="Demo Chat" placeholder="Type a message to get started..." />
+</div>
+
+## Features
+
+- **💬 Real-time Messaging**: Interactive chat interface with instant message display
+- **🤖 Automated Responses**: Built-in bot responses with random reply generation
+- **⏰ Timestamps**: Each message includes a timestamp showing when it was sent
+- **📱 Modern Design**: Beautiful gradient themes with rounded corners and shadows
+- **🔄 Smooth Scrolling**: Auto-scrolls to latest messages
+- **⌨️ Keyboard Support**: Send messages with Enter key
+- **📱 Responsive Layout**: Adapts to different container sizes
+- **🎨 Message Types**: Distinct styling for user and bot messages
+
+## Attributes
+
+| Attribute     | Type   | Default                | Description                            |
+| ------------- | ------ | ---------------------- | -------------------------------------- |
+| `title`       | String | `Chat`                 | The title displayed in the chat header |
+| `placeholder` | String | `Type your message...` | Placeholder text for the input field   |
+
+## Message Types
+
+The component supports two types of messages:
+
+### User Messages
+
+- Aligned to the right
+- Purple gradient background
+- White text
+- Timestamp aligned right
+
+### Bot Messages
+
+- Aligned to the left
+- Light gray background
+- Dark text
+- Timestamp aligned left
+
+## Styling
+
+The component comes with built-in styling that includes:
+
+### Design Elements
+
+- **Modern Gradients**: Purple gradient theme for headers and user messages
+- **Card Design**: Rounded corners with subtle shadows
+- **Typography**: System font stack for optimal readability
+- **Spacing**: Consistent padding and margins throughout
+
+### Color Scheme
+
+- **Primary Gradient**: `#667eea` to `#764ba2`
+- **User Messages**: Gradient background with white text
+- **Bot Messages**: Light gray (`#f1f3f4`) background with dark text
+- **Borders**: Light gray (`#e1e5e9`) for subtle separation
+
+### Layout
+
+- **Fixed Height**: 500px total height
+- **Flexible Width**: Max-width of 400px, responsive to container
+- **Scrollable Messages**: 380px message area with custom scrollbar
+- **Fixed Input**: Always visible at bottom
+
+## Behavior
+
+### Message Flow
+
+1. **User Input**: Type message and press Enter or click Send
+2. **Message Display**: User message appears on the right with timestamp
+3. **Bot Response**: After 1 second, bot replies with a random response
+4. **Auto Scroll**: Chat automatically scrolls to show latest messages
+
+### Input Handling
+
+- **Enter Key**: Sends the message when pressed
+- **Send Button**: Click to send message
+- **Empty Messages**: Prevents sending empty or whitespace-only messages
+- **Input Clearing**: Input field clears after sending
+
+### Bot Responses
+
+The component includes a variety of predefined bot responses:
+
+- "That's interesting! Tell me more."
+- "I understand what you're saying."
+- "Thanks for sharing that with me."
+- "How do you feel about that?"
+- "That's a great point!"
+- "I'm here to help. What else would you like to discuss?"
+
+## Customization
+
+### Custom Styling
+
+You can override the component's CSS by targeting its shadow DOM:
+
+```css
+chat-ui {
+  --chat-height: 600px;
+  --chat-width: 500px;
+}
+```
+
+### Programmatic Control
+
+Access the component via JavaScript to add messages programmatically:
+
+```javascript
+const chatUI = document.querySelector("chat-ui");
+
+// Add a user message
+chatUI.addMessage("Hello from JavaScript!", "user");
+
+// Add a bot message
+chatUI.addMessage("Hi there! How can I help?", "bot");
+```
+
+## Browser Support
+
+This component works in all modern browsers that support:
+
+- [Custom Elements](https://caniuse.com/custom-elementsv1)
+- [Shadow DOM](https://caniuse.com/shadowdomv1)
+- [CSS Grid & Flexbox](https://caniuse.com/flexbox)
+- [CSS Custom Properties](https://caniuse.com/css-variables)
+
+## Accessibility
+
+The component includes several accessibility features:
+
+- **Semantic HTML**: Uses proper input and button elements
+- **Keyboard Navigation**: Full keyboard support for interaction
+- **Focus Management**: Proper focus handling for input field
+- **Screen Reader Support**: Meaningful text content and structure
+- **Color Contrast**: High contrast ratios for readability
+
+## Use Cases
+
+Perfect for:
+
+- **Customer Support**: Embed in websites for customer service
+- **Demo Applications**: Show chat functionality in prototypes
+- **Educational Projects**: Teach messaging UI concepts
+- **Portfolio Pieces**: Demonstrate web component skills
+- **Interactive Documentation**: Provide help through chat interface
+
+## Performance
+
+The component is optimized for performance:
+
+- **Lightweight**: Minimal JavaScript footprint
+- **Efficient Rendering**: Only re-renders when messages change
+- **Memory Management**: Proper event listener cleanup
+- **Smooth Animations**: Hardware-accelerated transitions
+
+## Future Enhancements
+
+Potential features for future versions:
+
+- Custom message templates
+- File upload support
+- Emoji picker integration
+- Message reactions
+- Typing indicators
+- Message persistence
+- Custom bot logic integration

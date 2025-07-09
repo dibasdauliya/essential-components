@@ -1,0 +1,8 @@
+{
+  "label": "Chat UI",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Interactive chat interface components for building modern messaging experiences."
+  }
+}
