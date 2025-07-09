@@ -108,7 +108,7 @@ class ChatUI extends HTMLElement {
         }
 
         .messages {
-          height: 380px;
+          height: 340px;
           overflow-y: auto;
           padding: 16px;
           display: flex;
