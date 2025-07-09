@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat UI Component Test</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 2rem;
+      }
+
+      .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .demo-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-section h2 {
+        color: #667eea;
+        margin-top: 0;
+        margin-bottom: 1rem;
+      }
+
+      .demo-section p {
+        color: #666;
+        margin-bottom: 1rem;
+      }
+
+      .chat-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      .code-block {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        font-family: "Monaco", "Consolas", monospace;
+        font-size: 14px;
+        overflow-x: auto;
+      }
+
+      .features {
+        grid-column: 1 / -1;
+        text-align: center;
+      }
+
+      .feature-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .feature-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🗨️ Chat UI Component Test</h1>
+
+      <div class="demo-grid">
+        <div class="demo-section">
+          <h2>Default Chat</h2>
+          <p>Basic chat interface with default settings:</p>
+          <div class="code-block">&lt;chat-ui&gt;&lt;/chat-ui&gt;</div>
+          <div class="chat-container">
+            <chat-ui></chat-ui>
+          </div>
+        </div>
+
+        <div class="demo-section">
+          <h2>Custom Title & Placeholder</h2>
+          <p>Chat with custom title and placeholder text:</p>
+          <div class="code-block">
+            &lt;chat-ui title="Support Center" placeholder="How can we help
+            you?"&gt; &lt;/chat-ui&gt;
+          </div>
+          <div class="chat-container">
+            <chat-ui title="Support Center" placeholder="How can we help you?">
+            </chat-ui>
+          </div>
+        </div>
+
+        <div class="demo-section">
+          <h2>AI Assistant Chat</h2>
+          <p>Styled as an AI assistant interface:</p>
+          <div class="code-block">
+            &lt;chat-ui title="🤖 AI Assistant" placeholder="Ask me
+            anything..."&gt; &lt;/chat-ui&gt;
+          </div>
+          <div class="chat-container">
+            <chat-ui title="🤖 AI Assistant" placeholder="Ask me anything...">
+            </chat-ui>
+          </div>
+        </div>
+
+        <div class="demo-section">
+          <h2>Team Chat</h2>
+          <p>Team collaboration style chat:</p>
+          <div class="code-block">
+            &lt;chat-ui title="💼 Team Discussion" placeholder="Share your
+            thoughts..."&gt; &lt;/chat-ui&gt;
+          </div>
+          <div class="chat-container">
+            <chat-ui
+              title="💼 Team Discussion"
+              placeholder="Share your thoughts..."
+            >
+            </chat-ui>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-section features">
+        <h2>✨ Features</h2>
+        <div class="feature-list">
+          <div class="feature-item">
+            <strong>💬 Real-time Messaging</strong><br />
+            Instant message display and responses
+          </div>
+          <div class="feature-item">
+            <strong>🤖 Auto Responses</strong><br />
+            Built-in bot with random replies
+          </div>
+          <div class="feature-item">
+            <strong>⏰ Timestamps</strong><br />
+            All messages include time stamps
+          </div>
+          <div class="feature-item">
+            <strong>📱 Responsive Design</strong><br />
+            Adapts to different screen sizes
+          </div>
+          <div class="feature-item">
+            <strong>⌨️ Keyboard Support</strong><br />
+            Send with Enter key
+          </div>
+          <div class="feature-item">
+            <strong>🎨 Modern UI</strong><br />
+            Beautiful gradients and animations
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import the chat UI component -->
+    <script src="../src/chat-ui.js"></script>
+
+    <script>
+      // Add some demo interactions
+      document.addEventListener("DOMContentLoaded", () => {
+        // Add a welcome message to the first chat after a delay
+        setTimeout(() => {
+          const firstChat = document.querySelector("chat-ui");
+          if (firstChat) {
+            firstChat.addMessage(
+              "Welcome! This is a demo of the chat UI component. Try typing a message!",
+              "bot"
+            );
+          }
+        }, 2000);
+      });
+    </script>
+  </body>
+</html>

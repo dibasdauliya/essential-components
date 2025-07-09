@@ -1,6 +1,6 @@
 {
   "name": "essential-components",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "HTML Web Components Made Easy!",
   "main": "main.js",
   "types": "main.d.ts",
@@ -24,6 +24,5 @@
     "url": "https://github.com/dibasdauliya/essential-components/issues"
   },
   "homepage": "https://dibasdauliya.github.io/essential-components/docs/intro",
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
