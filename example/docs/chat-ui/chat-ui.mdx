@@ -2,7 +2,7 @@ import { ChatUI } from "@site/src/components/chat-ui";
 
 # Chat UI
 
-The `<chat-ui>` component is an interactive custom element that provides a complete chat interface with message display, input field, and automated responses. It features a modern design with gradients, timestamps, and smooth scrolling.
+The `<chat-ui>` component is an interactive custom element that provides a complete chat interface with message display, input field, and programmable response handling. It features a modern design with customizable gradients, timestamps, smooth scrolling, and full programmatic control over message flow.
 
 ## Installation
 
@@ -22,7 +22,7 @@ import "essential-components/src/chat-ui";
 
 ## Usage
 
-After importing, you can use the `<chat-ui>` component in your HTML or JSX. The component works out of the box with no required configuration.
+After importing, you can use the `<chat-ui>` component in your HTML or JSX. The component works out of the box with manual response control for maximum flexibility.
 
 ### Basic Example
 
@@ -37,6 +37,19 @@ After importing, you can use the `<chat-ui>` component in your HTML or JSX. The 
 </chat-ui>
 ```
 
+### With Custom Colors and Gradients
+
+```html
+<chat-ui
+  title="AI Assistant"
+  primary-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+  primary-color="#f093fb"
+  bot-message-bg="#ffeaa7"
+  bot-message-color="#2d3436"
+>
+</chat-ui>
+```
+
 ### Live Example
 
 <div style={{ display: "flex", justifyContent: "center", margin: "2rem 0" }}>
@@ -46,20 +59,104 @@ After importing, you can use the `<chat-ui>` component in your HTML or JSX. The 
 ## Features
 
 - **💬 Real-time Messaging**: Interactive chat interface with instant message display
-- **🤖 Automated Responses**: Built-in bot responses with random reply generation
+- **🎯 Manual Control**: Full programmatic control over bot responses (no auto-responses)
+- **📩 Message API**: Get user messages and send bot responses programmatically
+- **🎨 Customizable Colors**: Fully customizable gradients and color schemes
+- **📞 Event Handling**: Callbacks and events for user message processing
 - **⏰ Timestamps**: Each message includes a timestamp showing when it was sent
-- **📱 Modern Design**: Beautiful gradient themes with rounded corners and shadows
+- **📱 Modern Design**: Beautiful customizable gradient themes with rounded corners and shadows
 - **🔄 Smooth Scrolling**: Auto-scrolls to latest messages
 - **⌨️ Keyboard Support**: Send messages with Enter key
 - **📱 Responsive Layout**: Adapts to different container sizes
 - **🎨 Message Types**: Distinct styling for user and bot messages
+- **🧹 Message Management**: Clear messages and retrieve message history
 
 ## Attributes
 
-| Attribute     | Type   | Default                | Description                            |
-| ------------- | ------ | ---------------------- | -------------------------------------- |
-| `title`       | String | `Chat`                 | The title displayed in the chat header |
-| `placeholder` | String | `Type your message...` | Placeholder text for the input field   |
+| Attribute           | Type   | Default                                             | Description                                     |
+| ------------------- | ------ | --------------------------------------------------- | ----------------------------------------------- |
+| `title`             | String | `Chat`                                              | The title displayed in the chat header          |
+| `placeholder`       | String | `Type your message...`                              | Placeholder text for the input field            |
+| `primary-gradient`  | String | `linear-gradient(135deg, #667eea 0%, #764ba2 100%)` | Gradient for header, send button, user messages |
+| `primary-color`     | String | `#667eea`                                           | Primary color for input focus border            |
+| `bot-message-bg`    | String | `#f1f3f4`                                           | Background color for bot messages               |
+| `bot-message-color` | String | `#333`                                              | Text color for bot messages                     |
+
+## Programmatic API
+
+### Getting Messages
+
+```javascript
+const chatUI = document.querySelector("chat-ui");
+
+// Get the last user message
+const lastMessage = chatUI.getLastUserMessage();
+console.log(lastMessage?.text);
+
+// Get all user messages
+const userMessages = chatUI.getUserMessages();
+
+// Get all messages (user + bot)
+const allMessages = chatUI.getAllMessages();
+```
+
+### Sending Messages
+
+```javascript
+// Send a bot response manually
+chatUI.sendBotResponse("Hello! How can I help you?");
+
+// Add a user message programmatically (optional)
+chatUI.addMessage("User message", "user");
+```
+
+### Message Management
+
+```javascript
+// Clear all messages
+chatUI.clearMessages();
+```
+
+### Event Handling
+
+#### Method 1: Using Callbacks
+
+```javascript
+chatUI.setUserMessageCallback((message, chatInstance) => {
+  console.log("User said:", message.text);
+
+  // Analyze the message and respond
+  const response = analyzeMessage(message.text);
+  chatInstance.sendBotResponse(response);
+});
+```
+
+#### Method 2: Using Event Listeners
+
+```javascript
+chatUI.addEventListener("user-message", (event) => {
+  const message = event.detail.message;
+  const chatInstance = event.detail.chatUI;
+
+  console.log("User message:", message.text);
+
+  // Process and respond
+  chatInstance.sendBotResponse("Thanks for your message!");
+});
+```
+
+### Message Object Structure
+
+Each message object contains:
+
+```javascript
+{
+  id: 1640995200000,           // Timestamp-based unique ID
+  text: "Hello world",         // Message content
+  type: "user",                // "user" or "bot"
+  timestamp: Date             // JavaScript Date object
+}
+```
 
 ## Message Types
 
@@ -68,41 +165,140 @@ The component supports two types of messages:
 ### User Messages
 
 - Aligned to the right
-- Purple gradient background
+- Uses `primary-gradient` background
 - White text
 - Timestamp aligned right
 
 ### Bot Messages
 
 - Aligned to the left
-- Light gray background
-- Dark text
+- Uses `bot-message-bg` background
+- Uses `bot-message-color` text
 - Timestamp aligned left
 
-## Styling
+## Styling and Customization
 
-The component comes with built-in styling that includes:
+### Built-in Color Schemes
+
+The component supports complete visual customization through attributes:
+
+```html
+<!-- Blue Purple (Default) -->
+<chat-ui
+  primary-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+></chat-ui>
+
+<!-- Pink Red -->
+<chat-ui
+  primary-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+></chat-ui>
+
+<!-- Green Teal -->
+<chat-ui
+  primary-gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+></chat-ui>
+
+<!-- Blue Cyan -->
+<chat-ui
+  primary-gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+></chat-ui>
+```
 
 ### Design Elements
 
-- **Modern Gradients**: Purple gradient theme for headers and user messages
+- **Custom Gradients**: Any CSS gradient for headers and user messages
+- **Flexible Colors**: Separate controls for bot message styling
 - **Card Design**: Rounded corners with subtle shadows
 - **Typography**: System font stack for optimal readability
 - **Spacing**: Consistent padding and margins throughout
-
-### Color Scheme
-
-- **Primary Gradient**: `#667eea` to `#764ba2`
-- **User Messages**: Gradient background with white text
-- **Bot Messages**: Light gray (`#f1f3f4`) background with dark text
-- **Borders**: Light gray (`#e1e5e9`) for subtle separation
 
 ### Layout
 
 - **Fixed Height**: 500px total height
 - **Flexible Width**: Max-width of 400px, responsive to container
-- **Scrollable Messages**: 380px message area with custom scrollbar
+- **Scrollable Messages**: 340px message area with custom scrollbar
 - **Fixed Input**: Always visible at bottom
+
+## Advanced Usage Examples
+
+### Simple Bot with Keyword Responses
+
+```javascript
+const chatUI = document.querySelector("chat-ui");
+
+chatUI.setUserMessageCallback((message, chatInstance) => {
+  const text = message.text.toLowerCase();
+  let response = "";
+
+  if (text.includes("hello")) {
+    response = "Hello! Nice to meet you! 👋";
+  } else if (text.includes("help")) {
+    response = "I'm here to help! What do you need?";
+  } else if (text.includes("time")) {
+    response = `The current time is ${new Date().toLocaleTimeString()}.`;
+  } else {
+    response = "That's interesting! Tell me more.";
+  }
+
+  setTimeout(() => {
+    chatInstance.sendBotResponse(response);
+  }, 500);
+});
+```
+
+### Sentiment Analysis Bot
+
+```javascript
+chatUI.setUserMessageCallback((message, chatInstance) => {
+  const sentiment = analyzeSentiment(message.text);
+  const response = `I detect a ${sentiment} sentiment in your message. How can I help?`;
+
+  setTimeout(() => {
+    chatInstance.sendBotResponse(response);
+  }, 600);
+});
+
+function analyzeSentiment(text) {
+  const positiveWords = ["good", "great", "awesome", "love", "happy"];
+  const negativeWords = ["bad", "terrible", "hate", "sad", "angry"];
+
+  const lowerText = text.toLowerCase();
+  const hasPositive = positiveWords.some((word) => lowerText.includes(word));
+  const hasNegative = negativeWords.some((word) => lowerText.includes(word));
+
+  if (hasPositive && !hasNegative) return "positive";
+  if (hasNegative && !hasPositive) return "negative";
+  return "neutral";
+}
+```
+
+### Integration with External APIs
+
+```javascript
+chatUI.setUserMessageCallback(async (message, chatInstance) => {
+  // Show typing indicator (you can send a temporary message)
+  const typingMessage = chatInstance.sendBotResponse("🤔 Thinking...");
+
+  try {
+    // Call your API
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: message.text }),
+    });
+
+    const data = await response.json();
+
+    // Replace typing indicator with real response
+    chatInstance.clearMessages(); // Remove "Thinking..." message
+    chatInstance.sendBotResponse(data.reply);
+  } catch (error) {
+    chatInstance.sendBotResponse(
+      "Sorry, I'm having trouble connecting right now."
+    );
+  }
+});
+```
 
 ## Behavior
 
@@ -110,8 +306,9 @@ The component comes with built-in styling that includes:
 
 1. **User Input**: Type message and press Enter or click Send
 2. **Message Display**: User message appears on the right with timestamp
-3. **Bot Response**: After 1 second, bot replies with a random response
-4. **Auto Scroll**: Chat automatically scrolls to show latest messages
+3. **Event Trigger**: `user-message` event fires and callback is called
+4. **Manual Response**: Your code decides how to respond
+5. **Auto Scroll**: Chat automatically scrolls to show latest messages
 
 ### Input Handling
 
@@ -120,43 +317,15 @@ The component comes with built-in styling that includes:
 - **Empty Messages**: Prevents sending empty or whitespace-only messages
 - **Input Clearing**: Input field clears after sending
 
-### Bot Responses
+### No Auto-Responses
 
-The component includes a variety of predefined bot responses:
+Unlike basic chat components, this component does **not** automatically generate responses. This gives you complete control over the conversation flow and allows for:
 
-- "That's interesting! Tell me more."
-- "I understand what you're saying."
-- "Thanks for sharing that with me."
-- "How do you feel about that?"
-- "That's a great point!"
-- "I'm here to help. What else would you like to discuss?"
-
-## Customization
-
-### Custom Styling
-
-You can override the component's CSS by targeting its shadow DOM:
-
-```css
-chat-ui {
-  --chat-height: 600px;
-  --chat-width: 500px;
-}
-```
-
-### Programmatic Control
-
-Access the component via JavaScript to add messages programmatically:
-
-```javascript
-const chatUI = document.querySelector("chat-ui");
-
-// Add a user message
-chatUI.addMessage("Hello from JavaScript!", "user");
-
-// Add a bot message
-chatUI.addMessage("Hi there! How can I help?", "bot");
-```
+- Custom AI integration
+- API-based responses
+- Complex conversation logic
+- Manual moderation
+- Real-time human responses
 
 ## Browser Support
 
@@ -176,16 +345,19 @@ The component includes several accessibility features:
 - **Focus Management**: Proper focus handling for input field
 - **Screen Reader Support**: Meaningful text content and structure
 - **Color Contrast**: High contrast ratios for readability
+- **Custom Events**: Proper event bubbling for assistive technologies
 
 ## Use Cases
 
 Perfect for:
 
-- **Customer Support**: Embed in websites for customer service
-- **Demo Applications**: Show chat functionality in prototypes
-- **Educational Projects**: Teach messaging UI concepts
-- **Portfolio Pieces**: Demonstrate web component skills
-- **Interactive Documentation**: Provide help through chat interface
+- **AI Chatbots**: Integrate with OpenAI, Claude, or custom AI services
+- **Customer Support**: Real-time human or automated support
+- **Interactive Applications**: Conversational interfaces for apps
+- **Educational Tools**: Language learning, tutorials, Q&A systems
+- **Portfolio Projects**: Demonstrate advanced web component skills
+- **API Demonstrations**: Show AI/ML service integrations
+- **Prototype Development**: Quick chat UI for testing concepts
 
 ## Performance
 
@@ -195,15 +367,32 @@ The component is optimized for performance:
 - **Efficient Rendering**: Only re-renders when messages change
 - **Memory Management**: Proper event listener cleanup
 - **Smooth Animations**: Hardware-accelerated transitions
+- **Manual Control**: No unnecessary auto-response timers
 
-## Future Enhancements
+## Migration from Auto-Response Version
 
-Potential features for future versions:
+If you're upgrading from a version with automatic responses:
 
-- Custom message templates
-- File upload support
-- Emoji picker integration
-- Message reactions
-- Typing indicators
-- Message persistence
-- Custom bot logic integration
+```javascript
+// OLD: Auto-responses were built-in
+// No additional code needed
+
+// NEW: Manual control required
+chatUI.setUserMessageCallback((message, chatInstance) => {
+  // Your response logic here
+  const response = getBotResponse(message.text);
+  chatInstance.sendBotResponse(response);
+});
+
+function getBotResponse(userMessage) {
+  const responses = [
+    "That's interesting! Tell me more.",
+    "I understand what you're saying.",
+    "Thanks for sharing that with me.",
+    "How do you feel about that?",
+    "That's a great point!",
+    "I'm here to help. What else would you like to discuss?",
+  ];
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+```

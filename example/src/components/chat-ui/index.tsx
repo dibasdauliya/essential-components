@@ -24,7 +24,7 @@ export function ChatUI({
     <BrowserOnly>
       {() => {
         // Import the custom element only in the browser environment
-        require("../../../../src/chat-ui");
+        require("essential-components/src/chat-ui");
         return <chat-ui title={title} placeholder={placeholder}></chat-ui>;
       }}
     </BrowserOnly>

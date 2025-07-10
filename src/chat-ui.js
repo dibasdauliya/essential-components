@@ -3,6 +3,7 @@ class ChatUI extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this.messages = [];
+    this.onUserMessage = null; // Callback for when user sends a message
   }
 
   connectedCallback() {
@@ -20,6 +21,39 @@ class ChatUI extends HTMLElement {
     this.messages.push(message);
     this.renderMessages();
     this.scrollToBottom();
+    return message;
+  }
+
+  // Get the last user message
+  getLastUserMessage() {
+    const userMessages = this.messages.filter((msg) => msg.type === "user");
+    return userMessages[userMessages.length - 1] || null;
+  }
+
+  // Get all user messages
+  getUserMessages() {
+    return this.messages.filter((msg) => msg.type === "user");
+  }
+
+  // Get all messages
+  getAllMessages() {
+    return [...this.messages];
+  }
+
+  // Manually send a bot response
+  sendBotResponse(text) {
+    return this.addMessage(text, "bot");
+  }
+
+  // Clear all messages
+  clearMessages() {
+    this.messages = [];
+    this.renderMessages();
+  }
+
+  // Set callback for when user sends a message
+  setUserMessageCallback(callback) {
+    this.onUserMessage = callback;
   }
 
   setupEventListeners() {
@@ -29,13 +63,21 @@ class ChatUI extends HTMLElement {
     const sendMessage = () => {
       const text = input.value.trim();
       if (text) {
-        this.addMessage(text, "user");
+        const userMessage = this.addMessage(text, "user");
         input.value = "";
 
-        // Simulate bot response after a delay
-        setTimeout(() => {
-          this.addMessage(this.getBotResponse(text), "bot");
-        }, 1000);
+        // Call the user message callback if set
+        if (this.onUserMessage) {
+          this.onUserMessage(userMessage, this);
+        }
+
+        // Dispatch custom event
+        this.dispatchEvent(
+          new CustomEvent("user-message", {
+            detail: { message: userMessage, chatUI: this },
+            bubbles: true,
+          })
+        );
       }
     };
 
@@ -84,6 +126,14 @@ class ChatUI extends HTMLElement {
     const placeholder =
       this.getAttribute("placeholder") || "Type your message...";
 
+    // Customizable colors
+    const primaryGradient =
+      this.getAttribute("primary-gradient") ||
+      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    const primaryColor = this.getAttribute("primary-color") || "#667eea";
+    const botMessageBg = this.getAttribute("bot-message-bg") || "#f1f3f4";
+    const botMessageColor = this.getAttribute("bot-message-color") || "#333";
+
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -100,7 +150,7 @@ class ChatUI extends HTMLElement {
         }
 
         .chat-header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: ${primaryGradient};
           color: white;
           padding: 16px;
           font-weight: 600;
@@ -137,13 +187,13 @@ class ChatUI extends HTMLElement {
         }
 
         .message.user .message-content {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: ${primaryGradient};
           color: white;
         }
 
         .message.bot .message-content {
-          background: #f1f3f4;
-          color: #333;
+          background: ${botMessageBg};
+          color: ${botMessageColor};
         }
 
         .message-time {
@@ -175,12 +225,12 @@ class ChatUI extends HTMLElement {
         }
 
         .chat-input:focus {
-          border-color: #667eea;
+          border-color: ${primaryColor};
         }
 
         .send-btn {
           padding: 12px 20px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: ${primaryGradient};
           color: white;
           border: none;
           border-radius: 24px;

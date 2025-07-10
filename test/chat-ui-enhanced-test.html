@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enhanced ChatUI Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .controls {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        min-width: 300px;
+        max-width: 400px;
+      }
+      .control-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input,
+      button,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .message-info {
+        background: #e9ecef;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+      }
+      .chat-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Enhanced ChatUI Test</h1>
+    <p>This demonstrates manual message handling and customizable colors.</p>
+
+    <div class="container">
+      <div class="controls">
+        <h3>Chat Controls</h3>
+
+        <div class="control-group">
+          <label>Manual Bot Response:</label>
+          <input
+            type="text"
+            id="botResponse"
+            placeholder="Enter bot response..."
+          />
+          <button onclick="sendBotResponse()">Send Bot Response</button>
+        </div>
+
+        <div class="control-group">
+          <label>Response Mode:</label>
+          <select id="responseMode" onchange="changeResponseMode()">
+            <option value="manual">Manual Only</option>
+            <option value="echo">Echo User Message</option>
+            <option value="analyze">Analyze & Respond</option>
+            <option value="sentiment">Sentiment Analysis</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <button onclick="clearChat()">Clear Messages</button>
+          <button onclick="getLastMessage()">Get Last User Message</button>
+          <button onclick="getAllMessages()">Get All Messages</button>
+        </div>
+
+        <div class="control-group">
+          <h4>Customize Colors:</h4>
+          <label>Primary Gradient:</label>
+          <select onchange="updateGradient(this.value)">
+            <option value="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+              Blue Purple (Default)
+            </option>
+            <option value="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+              Pink Red
+            </option>
+            <option value="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+              Blue Cyan
+            </option>
+            <option value="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
+              Green Teal
+            </option>
+            <option value="linear-gradient(135deg, #fa709a 0%, #fee140 100%)">
+              Pink Yellow
+            </option>
+            <option value="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)">
+              Mint Pink
+            </option>
+          </select>
+
+          <label>Bot Message Background:</label>
+          <input
+            type="color"
+            value="#f1f3f4"
+            onchange="updateBotBg(this.value)"
+          />
+        </div>
+
+        <div id="messageInfo" class="message-info">
+          <strong>Last User Message:</strong> None
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <chat-ui
+          id="chatUI"
+          title="AI Assistant"
+          placeholder="Ask me anything..."
+          primary-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+          primary-color="#667eea"
+          bot-message-bg="#f1f3f4"
+          bot-message-color="#333"
+        >
+        </chat-ui>
+
+        <chat-ui
+          id="chatUI2"
+          title="Support Chat"
+          placeholder="How can we help?"
+          primary-gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+          primary-color="#43e97b"
+          bot-message-bg="#e8f5e8"
+          bot-message-color="#2d5a2d"
+        >
+        </chat-ui>
+      </div>
+    </div>
+
+    <script src="../src/chat-ui.js"></script>
+    <script>
+      const chatUI = document.getElementById("chatUI");
+      const chatUI2 = document.getElementById("chatUI2");
+      let currentResponseMode = "manual";
+
+      // Set up user message handling for both chat UIs
+      function setupMessageHandling(chat, name) {
+        // Method 1: Using callback
+        chat.setUserMessageCallback((message, chatInstance) => {
+          console.log(`${name} - User message via callback:`, message);
+          handleUserMessage(message, chatInstance);
+        });
+
+        // Method 2: Using event listener (alternative approach)
+        chat.addEventListener("user-message", (event) => {
+          console.log(`${name} - User message via event:`, event.detail);
+          updateMessageInfo(event.detail.message);
+        });
+      }
+
+      setupMessageHandling(chatUI, "Chat 1");
+      setupMessageHandling(chatUI2, "Chat 2");
+
+      function handleUserMessage(message, chatInstance) {
+        updateMessageInfo(message);
+
+        switch (currentResponseMode) {
+          case "echo":
+            setTimeout(() => {
+              chatInstance.sendBotResponse(`You said: "${message.text}"`);
+            }, 500);
+            break;
+
+          case "analyze":
+            setTimeout(() => {
+              const response = analyzeMessage(message.text);
+              chatInstance.sendBotResponse(response);
+            }, 800);
+            break;
+
+          case "sentiment":
+            setTimeout(() => {
+              const sentiment = analyzeSentiment(message.text);
+              chatInstance.sendBotResponse(
+                `I detect a ${sentiment} sentiment in your message. How can I help?`
+              );
+            }, 600);
+            break;
+
+          case "manual":
+          default:
+            // Do nothing - manual response only
+            break;
+        }
+      }
+
+      function analyzeMessage(text) {
+        const lowerText = text.toLowerCase();
+
+        if (lowerText.includes("hello") || lowerText.includes("hi")) {
+          return "Hello! Nice to meet you. What would you like to talk about?";
+        } else if (lowerText.includes("help")) {
+          return "I'm here to help! What specific assistance do you need?";
+        } else if (lowerText.includes("weather")) {
+          return "I don't have access to real-time weather data, but you can check your local weather service!";
+        } else if (lowerText.includes("time")) {
+          return `The current time is ${new Date().toLocaleTimeString()}.`;
+        } else if (lowerText.includes("joke")) {
+          const jokes = [
+            "Why don't scientists trust atoms? Because they make up everything!",
+            "Why did the scarecrow win an award? He was outstanding in his field!",
+            "Why don't eggs tell jokes? They'd crack each other up!",
+          ];
+          return jokes[Math.floor(Math.random() * jokes.length)];
+        } else {
+          return "That's interesting! Can you tell me more about that?";
+        }
+      }
+
+      function analyzeSentiment(text) {
+        const positiveWords = [
+          "good",
+          "great",
+          "awesome",
+          "amazing",
+          "love",
+          "like",
+          "happy",
+          "excited",
+        ];
+        const negativeWords = [
+          "bad",
+          "terrible",
+          "awful",
+          "hate",
+          "dislike",
+          "sad",
+          "angry",
+          "frustrated",
+        ];
+
+        const lowerText = text.toLowerCase();
+        const hasPositive = positiveWords.some((word) =>
+          lowerText.includes(word)
+        );
+        const hasNegative = negativeWords.some((word) =>
+          lowerText.includes(word)
+        );
+
+        if (hasPositive && !hasNegative) return "positive";
+        if (hasNegative && !hasPositive) return "negative";
+        return "neutral";
+      }
+
+      function updateMessageInfo(message) {
+        const messageInfo = document.getElementById("messageInfo");
+        messageInfo.innerHTML = `
+                <strong>Last User Message:</strong><br>
+                Text: "${message.text}"<br>
+                Time: ${message.timestamp.toLocaleString()}<br>
+                ID: ${message.id}
+            `;
+      }
+
+      function sendBotResponse() {
+        const responseText = document
+          .getElementById("botResponse")
+          .value.trim();
+        if (responseText) {
+          chatUI.sendBotResponse(responseText);
+          document.getElementById("botResponse").value = "";
+        }
+      }
+
+      function changeResponseMode() {
+        currentResponseMode = document.getElementById("responseMode").value;
+        console.log("Response mode changed to:", currentResponseMode);
+      }
+
+      function clearChat() {
+        chatUI.clearMessages();
+        chatUI2.clearMessages();
+        updateMessageInfo({ text: "None", timestamp: new Date(), id: "none" });
+      }
+
+      function getLastMessage() {
+        const lastMessage = chatUI.getLastUserMessage();
+        if (lastMessage) {
+          alert(`Last message: "${lastMessage.text}"`);
+        } else {
+          alert("No user messages yet");
+        }
+      }
+
+      function getAllMessages() {
+        const allMessages = chatUI.getAllMessages();
+        console.log("All messages:", allMessages);
+        alert(
+          `Total messages: ${allMessages.length} (check console for details)`
+        );
+      }
+
+      function updateGradient(gradient) {
+        chatUI.setAttribute("primary-gradient", gradient);
+        chatUI.setAttribute(
+          "primary-color",
+          gradient.includes("#667eea") ? "#667eea" : "#43e97b"
+        );
+        // Re-render to apply changes
+        chatUI.render();
+      }
+
+      function updateBotBg(color) {
+        chatUI.setAttribute("bot-message-bg", color);
+        chatUI.render();
+      }
+
+      // Add some initial messages for demonstration
+      setTimeout(() => {
+        chatUI.sendBotResponse(
+          "Hi! I'm your AI assistant. Try different response modes to see how I can analyze your messages!"
+        );
+        chatUI2.sendBotResponse(
+          "Welcome to support chat! I'm using a green theme."
+        );
+      }, 1000);
+    </script>
+  </body>
+</html>
