@@ -89,14 +89,11 @@ After importing, you can use the `<chat-ui>` component in your HTML or JSX. The 
 ```javascript
 const chatUI = document.querySelector("chat-ui");
 
-// Get the last user message
 const lastMessage = chatUI.getLastUserMessage();
 console.log(lastMessage?.text);
 
-// Get all user messages
 const userMessages = chatUI.getUserMessages();
 
-// Get all messages (user + bot)
 const allMessages = chatUI.getAllMessages();
 ```
 
@@ -113,7 +110,6 @@ chatUI.addMessage("User message", "user");
 ### Message Management
 
 ```javascript
-// Clear all messages
 chatUI.clearMessages();
 ```
 
@@ -125,7 +121,6 @@ chatUI.clearMessages();
 chatUI.setUserMessageCallback((message, chatInstance) => {
   console.log("User said:", message.text);
 
-  // Analyze the message and respond
   const response = analyzeMessage(message.text);
   chatInstance.sendBotResponse(response);
 });
@@ -140,7 +135,6 @@ chatUI.addEventListener("user-message", (event) => {
 
   console.log("User message:", message.text);
 
-  // Process and respond
   chatInstance.sendBotResponse("Thanks for your message!");
 });
 ```
@@ -154,7 +148,7 @@ Each message object contains:
   id: 1640995200000,           // Timestamp-based unique ID
   text: "Hello world",         // Message content
   type: "user",                // "user" or "bot"
-  timestamp: Date             // JavaScript Date object
+  timestamp: Date             // Date object
 }
 ```
 
@@ -186,21 +180,6 @@ The component supports complete visual customization through attributes:
 <!-- Blue Purple (Default) -->
 <chat-ui
   primary-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-></chat-ui>
-
-<!-- Pink Red -->
-<chat-ui
-  primary-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-></chat-ui>
-
-<!-- Green Teal -->
-<chat-ui
-  primary-gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
-></chat-ui>
-
-<!-- Blue Cyan -->
-<chat-ui
-  primary-gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
 ></chat-ui>
 ```
 
@@ -276,7 +255,6 @@ function analyzeSentiment(text) {
 
 ```javascript
 chatUI.setUserMessageCallback(async (message, chatInstance) => {
-  // Show typing indicator (you can send a temporary message)
   const typingMessage = chatInstance.sendBotResponse("🤔 Thinking...");
 
   try {
@@ -289,7 +267,6 @@ chatUI.setUserMessageCallback(async (message, chatInstance) => {
 
     const data = await response.json();
 
-    // Replace typing indicator with real response
     chatInstance.clearMessages(); // Remove "Thinking..." message
     chatInstance.sendBotResponse(data.reply);
   } catch (error) {
