@@ -24,5 +24,12 @@
     "url": "https://github.com/dibasdauliya/essential-components/issues"
   },
   "homepage": "https://dibasdauliya.github.io/essential-components/docs/intro",
-  "devDependencies": {}
+  "devDependencies": {},
+  "files": [
+    "main.js",
+    "main.d.ts",
+    "src/*.js",
+    "LICENSE",
+    "README.md"
+  ]
 }
