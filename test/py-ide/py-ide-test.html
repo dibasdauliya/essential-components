@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PyIDE Web Component Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .demo-section {
+        background: white;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+
+      button {
+        background: #007acc;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      button:hover {
+        background: #005a9e;
+      }
+
+      button:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+      }
+
+      .output-display {
+        background: #f8f8f8;
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .event-log {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-size: 12px;
+        max-height: 150px;
+        overflow-y: auto;
+      }
+
+      h1,
+      h2 {
+        color: #333;
+      }
+
+      .api-demo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin: 20px 0;
+      }
+
+      @media (max-width: 768px) {
+        .api-demo {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>PyIDE Web Component Demo</h1>
+
+      <div class="demo-section">
+        <h2>Basic Usage</h2>
+        <p>This demonstrates the basic usage of the PyIDE web component:</p>
+
+        <!-- This is the web component -->
+        <py-ide id="pyIDE"></py-ide>
+      </div>
+
+      <div class="demo-section">
+        <h2>API Demo</h2>
+        <p>Test the API methods and properties of the PyIDE component:</p>
+
+        <div class="controls">
+          <button id="getCodeBtn">Get All Code Files</button>
+          <button id="getOutputBtn">Get Latest Output</button>
+          <button id="setCodeBtn">Set Code Example</button>
+          <button id="addFileBtn">Add New File</button>
+        </div>
+
+        <div class="api-demo">
+          <div>
+            <h3>Code Files (pyIDE.code)</h3>
+            <div class="output-display" id="codeDisplay">
+              Click "Get All Code Files" to see current files
+            </div>
+          </div>
+
+          <div>
+            <h3>Latest Output (pyIDE.output)</h3>
+            <div class="output-display" id="outputDisplay">
+              Click "Get Latest Output" to see current output
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>Event Listeners</h2>
+        <p>Real-time events from the PyIDE component:</p>
+
+        <div class="event-log" id="eventLog">Waiting for events...</div>
+        <button id="clearLogBtn">Clear Event Log</button>
+      </div>
+
+      <div class="demo-section">
+        <h2>Integration Example</h2>
+        <p>
+          This shows how you might integrate PyIDE into your own application:
+        </p>
+
+        <div class="controls">
+          <button id="saveBtn">Save Current Work</button>
+          <button id="loadBtn">Load Example Project</button>
+          <button id="exportBtn">Export as JSON</button>
+        </div>
+
+        <div class="output-display" id="integrationOutput">
+          Integration results will appear here...
+        </div>
+      </div>
+    </div>
+
+    <!-- Load the web component -->
+    <script src="src/components/PyIDEWebComponent.js"></script>
+
+    <script>
+      // Get references to the component and UI elements
+      const pyIDE = document.getElementById("pyIDE");
+      const codeDisplay = document.getElementById("codeDisplay");
+      const outputDisplay = document.getElementById("outputDisplay");
+      const eventLog = document.getElementById("eventLog");
+      const integrationOutput = document.getElementById("integrationOutput");
+
+      let eventCount = 0;
+
+      // Helper function to log events
+      function logEvent(eventType, data) {
+        eventCount++;
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = `[${timestamp}] ${eventType}: ${JSON.stringify(
+          data,
+          null,
+          2
+        )}\n`;
+        eventLog.textContent += logEntry;
+        eventLog.scrollTop = eventLog.scrollHeight;
+      }
+
+      // Event listeners for the PyIDE component
+      pyIDE.addEventListener("input", (e) => {
+        logEvent("INPUT", {
+          fileName: e.detail.fileName,
+          contentLength: e.detail.content.length,
+          preview:
+            e.detail.content.substring(0, 50) +
+            (e.detail.content.length > 50 ? "..." : ""),
+        });
+      });
+
+      pyIDE.addEventListener("change", (e) => {
+        logEvent("CHANGE", {
+          fileName: e.detail.fileName,
+          fileId: e.detail.fileId,
+          contentLength: e.detail.content.length,
+        });
+      });
+
+      pyIDE.addEventListener("submit", (e) => {
+        logEvent("SUBMIT", {
+          fileName: e.detail.fileName,
+          contentLength: e.detail.content.length,
+        });
+
+        // Wait for execution to complete, then show output
+        setTimeout(() => {
+          outputDisplay.textContent = pyIDE.output;
+          logEvent("EXECUTION_COMPLETE", {
+            outputLength: pyIDE.output.length,
+          });
+        }, 1000);
+      });
+
+      pyIDE.addEventListener("save", (e) => {
+        logEvent("SAVE", {
+          fileCount: e.detail.files.length,
+          timestamp: e.detail.timestamp,
+          outputLength: e.detail.output.length,
+        });
+
+        // Show save confirmation
+        integrationOutput.textContent = `Saved ${
+          e.detail.files.length
+        } files at ${new Date(e.detail.timestamp).toLocaleTimeString()}`;
+      });
+
+      // API demo buttons
+      document.getElementById("getCodeBtn").addEventListener("click", () => {
+        const code = pyIDE.code;
+        codeDisplay.textContent = JSON.stringify(code, null, 2);
+      });
+
+      document.getElementById("getOutputBtn").addEventListener("click", () => {
+        outputDisplay.textContent = pyIDE.output;
+      });
+
+      document.getElementById("setCodeBtn").addEventListener("click", () => {
+        // Set example code using the new setCode method
+        const exampleFiles = [
+          {
+            name: "example.py",
+            content: `# Example Python Code
+import math
+
+def calculate_circle_area(radius):
+    """Calculate the area of a circle given its radius."""
+    return math.pi * radius ** 2
+
+def fibonacci(n):
+    """Generate fibonacci sequence up to n terms."""
+    if n <= 0:
+        return []
+    elif n == 1:
+        return [0]
+    
+    sequence = [0, 1]
+    for i in range(2, n):
+        sequence.append(sequence[i-1] + sequence[i-2])
+    
+    return sequence
+
+# Test the functions
+radius = 5
+area = calculate_circle_area(radius)
+print(f"Circle with radius {radius} has area: {area:.2f}")
+
+fib_sequence = fibonacci(10)
+print(f"Fibonacci sequence (10 terms): {fib_sequence}")
+`,
+          },
+          {
+            name: "data_analysis.py",
+            content: `# Data Analysis Example
+import random
+
+# Generate sample data
+data = [random.randint(1, 100) for _ in range(20)]
+print("Sample data:", data)
+
+# Basic statistics
+mean = sum(data) / len(data)
+sorted_data = sorted(data)
+median = sorted_data[len(data) // 2]
+max_val = max(data)
+min_val = min(data)
+
+print(f"Mean: {mean:.2f}")
+print(f"Median: {median}")
+print(f"Maximum: {max_val}")
+print(f"Minimum: {min_val}")
+print(f"Range: {max_val - min_val}")
+`,
+          },
+        ];
+
+        pyIDE.setCode(exampleFiles);
+        integrationOutput.textContent = `Set ${exampleFiles.length} example files successfully!`;
+      });
+
+      document.getElementById("addFileBtn").addEventListener("click", () => {
+        // This will trigger the component's add file functionality
+        pyIDE.shadowRoot.getElementById("addFileBtn").click();
+      });
+
+      document.getElementById("clearLogBtn").addEventListener("click", () => {
+        eventLog.textContent = "Event log cleared...\n";
+        eventCount = 0;
+      });
+
+      // Integration example buttons
+      document.getElementById("saveBtn").addEventListener("click", () => {
+        const allCode = pyIDE.code;
+        const output = pyIDE.output;
+
+        const saveData = {
+          timestamp: new Date().toISOString(),
+          files: allCode,
+          lastOutput: output,
+          totalFiles: allCode.length,
+        };
+
+        // In a real app, you'd send this to a server
+        localStorage.setItem("pyide-save", JSON.stringify(saveData));
+
+        integrationOutput.textContent = `Saved ${
+          allCode.length
+        } files to localStorage:\n${JSON.stringify(saveData, null, 2)}`;
+
+        logEvent("SAVE", {
+          fileCount: allCode.length,
+          timestamp: saveData.timestamp,
+        });
+      });
+
+      document.getElementById("loadBtn").addEventListener("click", () => {
+        // Load an example project
+        const exampleProject = {
+          files: [
+            {
+              name: "main.py",
+              content: `# Example Python Project
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Generate sample data
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+
+# Create a plot
+plt.figure(figsize=(10, 6))
+plt.plot(x, y, 'b-', linewidth=2, label='sin(x)')
+plt.title('Sine Wave Example')
+plt.xlabel('x')
+plt.ylabel('sin(x)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+print("Plot generated successfully!")
+print(f"Data points: {len(x)}")
+`,
+            },
+            {
+              name: "utils.py",
+              content: `# Utility functions
+def fibonacci(n):
+    """Generate fibonacci sequence up to n terms"""
+    if n <= 0:
+        return []
+    elif n == 1:
+        return [0]
+    
+    sequence = [0, 1]
+    for i in range(2, n):
+        sequence.append(sequence[i-1] + sequence[i-2])
+    
+    return sequence
+
+def is_prime(num):
+    """Check if a number is prime"""
+    if num < 2:
+        return False
+    for i in range(2, int(num ** 0.5) + 1):
+        if num % i == 0:
+            return False
+    return True
+
+if __name__ == "__main__":
+    print("Fibonacci sequence (10 terms):", fibonacci(10))
+    print("Prime numbers up to 20:", [i for i in range(2, 21) if is_prime(i)])
+`,
+            },
+          ],
+        };
+
+        integrationOutput.textContent = `Example project loaded:\n${JSON.stringify(
+          exampleProject,
+          null,
+          2
+        )}`;
+
+        logEvent("LOAD_PROJECT", {
+          fileCount: exampleProject.files.length,
+        });
+      });
+
+      document.getElementById("exportBtn").addEventListener("click", () => {
+        const exportData = {
+          metadata: {
+            exportedAt: new Date().toISOString(),
+            version: "1.0.0",
+            source: "PyIDE Web Component",
+          },
+          project: {
+            files: pyIDE.code,
+            lastOutput: pyIDE.output,
+          },
+        };
+
+        // Create and download JSON file
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `pyide-project-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        integrationOutput.textContent = `Project exported as JSON file\nExported ${pyIDE.code.length} files`;
+
+        logEvent("EXPORT", {
+          fileCount: pyIDE.code.length,
+          filename: a.download,
+        });
+      });
+
+      // Initialize displays
+      setTimeout(() => {
+        codeDisplay.textContent = JSON.stringify(pyIDE.code, null, 2);
+      }, 1000);
+    </script>
+  </body>
+</html>

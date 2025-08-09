@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple PyIDE Web Component Example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f0f0f0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .controls {
+        background: white;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      button {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px;
+      }
+
+      button:hover {
+        background: #218838;
+      }
+
+      .output {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        min-height: 100px;
+      }
+
+      h1 {
+        color: #333;
+        text-align: center;
+      }
+
+      .code-info {
+        background: #e9ecef;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Simple PyIDE Web Component Example</h1>
+
+      <!-- This is exactly what you requested -->
+      <py-ide></py-ide>
+
+      <div class="controls">
+        <h2>External Controls</h2>
+        <button id="button">Save Current Work</button>
+
+        <h3>Current Code Files:</h3>
+        <div class="code-info" id="codeInfo">Loading...</div>
+
+        <h3>Latest Output:</h3>
+        <div class="output" id="outputInfo">No output yet</div>
+
+        <h3>Event Log:</h3>
+        <div
+          class="output"
+          id="eventLog"
+          style="max-height: 200px; overflow-y: auto"
+        >
+          Waiting for events...
+        </div>
+      </div>
+    </div>
+
+    <!-- Load the web component -->
+    <script src="src/components/PyIDEWebComponent.js"></script>
+
+    <script>
+      // This is exactly the code you requested in your example
+      const pyIDE = document.querySelector("py-ide");
+      const saveBtn = document.getElementById("button");
+
+      document.body.appendChild(pyIDE);
+      document.body.appendChild(saveBtn);
+
+      saveBtn.onclick = () => {
+        // assuming multiple py files are allowed,
+        //   pyIDE.code could be an array of files
+        const sourceCode = pyIDE.code[0];
+        // pyIDE.output could be output from
+        //   latest Run (including errors)
+        const output = pyIDE.output;
+
+        console.log("filename", sourceCode.name);
+        console.log("source", sourceCode.content);
+        console.log("output", output);
+
+        // Also display in the UI for demo purposes
+        document.getElementById(
+          "outputInfo"
+        ).textContent = `Saved!\nFilename: ${sourceCode.name}\nContent length: ${sourceCode.content.length} chars\nOutput length: ${output.length} chars`;
+      };
+
+      // maybe can even have events, something like this --
+      pyIDE.addEventListener("input", (e) => {
+        // runs as user is typing code
+        console.log("unsaved changes in code");
+
+        // Display in event log
+        const eventLog = document.getElementById("eventLog");
+        eventLog.textContent += `[${new Date().toLocaleTimeString()}] INPUT: User is typing in ${
+          e.detail.fileName
+        }\n`;
+        eventLog.scrollTop = eventLog.scrollHeight;
+      });
+
+      pyIDE.addEventListener("change", (e) => {
+        // runs after user tabs away
+        console.log("new code", pyIDE.code[0].content);
+        // would be nice to know which of the files changed
+        // though i'm not sure the best way to implement that
+
+        // Display in event log
+        const eventLog = document.getElementById("eventLog");
+        eventLog.textContent += `[${new Date().toLocaleTimeString()}] CHANGE: File ${
+          e.detail.fileName
+        } (ID: ${e.detail.fileId}) was modified\n`;
+        eventLog.scrollTop = eventLog.scrollHeight;
+
+        // Update code display
+        updateCodeInfo();
+      });
+
+      pyIDE.addEventListener("submit", (e) => {
+        // runs when user hits the Run btn
+        console.log("Code execution started for:", e.detail.fileName);
+
+        // Display in event log
+        const eventLog = document.getElementById("eventLog");
+        eventLog.textContent += `[${new Date().toLocaleTimeString()}] SUBMIT: Running ${
+          e.detail.fileName
+        }\n`;
+        eventLog.scrollTop = eventLog.scrollHeight;
+
+        setTimeout(
+          // wait for 1sec to collect output, then display
+          () => {
+            console.log("new output", pyIDE.output);
+
+            // Update output display
+            document.getElementById("outputInfo").textContent = pyIDE.output;
+
+            // Log completion
+            const eventLog = document.getElementById("eventLog");
+            eventLog.textContent += `[${new Date().toLocaleTimeString()}] EXECUTION COMPLETE: Output updated\n`;
+            eventLog.scrollTop = eventLog.scrollHeight;
+          },
+          1000
+        );
+      });
+
+      pyIDE.addEventListener("save", (e) => {
+        // runs when user clicks the Save button in the component
+        console.log("Save event triggered:", e.detail);
+
+        // Display in event log
+        const eventLog = document.getElementById("eventLog");
+        eventLog.textContent += `[${new Date().toLocaleTimeString()}] SAVE: ${
+          e.detail.files.length
+        } files saved\n`;
+        eventLog.scrollTop = eventLog.scrollHeight;
+
+        // Update output display
+        document.getElementById(
+          "outputInfo"
+        ).textContent = `Internal Save triggered!\nFiles: ${e.detail.files.length}\nTimestamp: ${e.detail.timestamp}`;
+      });
+
+      // Helper function to update code info display
+      function updateCodeInfo() {
+        const codeInfo = document.getElementById("codeInfo");
+        const allCode = pyIDE.code;
+
+        if (allCode.length === 0) {
+          codeInfo.textContent = "No files loaded";
+          return;
+        }
+
+        let info = `Total files: ${allCode.length}\n\n`;
+        allCode.forEach((file, index) => {
+          info += `[${index}] ${file.name} (${file.content.length} chars)\n`;
+          if (file.content.length > 0) {
+            const preview = file.content.substring(0, 50).replace(/\n/g, "\\n");
+            info += `    Preview: ${preview}${
+              file.content.length > 50 ? "..." : ""
+            }\n`;
+          }
+          info += "\n";
+        });
+
+        codeInfo.textContent = info;
+      }
+
+      // Initial load
+      setTimeout(() => {
+        updateCodeInfo();
+      }, 1000);
+    </script>
+  </body>
+</html>

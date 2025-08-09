@@ -4,3 +4,4 @@ import "./src/essential-heading.js";
 import "./src/image-comparison.js";
 import "./src/activities-widget.js";
 import "./src/chat-ui.js";
+import "./src/py-ide.js";
