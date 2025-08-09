@@ -35,15 +35,15 @@ class PyIDEWebComponent extends HTMLElement {
       // Support <py-file name="main.py">...</py-file>
       this.querySelectorAll("py-file[name]").forEach((el) => {
         const name = el.getAttribute("name") || "untitled.py";
-        const content = el.textContent || "";
+        const content = el.textContent.trim() || "";
         files.push({ name, content });
       });
 
       // Support <script type="text/plain" data-filename="main.py">...</script>
-      this.querySelectorAll('script[type="text/plain"][data-filename]').forEach(
+      this.querySelectorAll("script[type='text/plain'][data-filename]").forEach(
         (el) => {
           const name = el.getAttribute("data-filename") || "untitled.py";
-          const content = el.textContent || "";
+          const content = el.textContent.trim() || "";
           files.push({ name, content });
         }
       );
