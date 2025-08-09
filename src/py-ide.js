@@ -27,6 +27,32 @@ class PyIDEWebComponent extends HTMLElement {
 
     this.init();
   }
+  // Read initial files passed via light DOM children
+  parseInitialFilesFromLightDom() {
+    try {
+      const files = [];
+
+      // Support <py-file name="main.py">...</py-file>
+      this.querySelectorAll("py-file[name]").forEach((el) => {
+        const name = el.getAttribute("name") || "untitled.py";
+        const content = el.textContent || "";
+        files.push({ name, content });
+      });
+
+      // Support <script type="text/plain" data-filename="main.py">...</script>
+      this.querySelectorAll('script[type="text/plain"][data-filename]').forEach(
+        (el) => {
+          const name = el.getAttribute("data-filename") || "untitled.py";
+          const content = el.textContent || "";
+          files.push({ name, content });
+        }
+      );
+
+      return files.length > 0 ? files : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   initializeCodeMirror() {
     const addStyle = (href) => {
@@ -159,12 +185,16 @@ class PyIDEWebComponent extends HTMLElement {
   init() {
     this.render();
     this.bindEvents();
+    // Load initial files from user's code
+    const initialFiles = this.parseInitialFilesFromLightDom();
+    if (initialFiles && initialFiles.length > 0) {
+      this.setCode(initialFiles);
+    }
     this.loadFromStorage();
     // ensure initial tabs render when there is no saved state
     if (this.files && this.files.length > 0) {
       this.renderFileTabs();
     }
-    // initialize CodeMirror after DOM is ready
     setTimeout(() => this.initializeCodeMirror(), 50);
   }
 

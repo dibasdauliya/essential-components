@@ -69,8 +69,14 @@
     <div class="container">
       <h1>Simple PyIDE Web Component Example</h1>
 
-      <!-- This is exactly what you requested -->
-      <py-ide></py-ide>
+      <py-ide>
+        <script type="text/plain" data-filename="main.py">
+          print("Hello from script tag")
+        </script>
+        <script type="text/plain" data-filename="maths.py">
+          def square(x): return x*x
+        </script>
+      </py-ide>
 
       <div class="controls">
         <h2>External Controls</h2>
@@ -97,7 +103,6 @@
     <script src="src/components/PyIDEWebComponent.js"></script>
 
     <script>
-      // This is exactly the code you requested in your example
       const pyIDE = document.querySelector("py-ide");
       const saveBtn = document.getElementById("button");
 
@@ -105,29 +110,21 @@
       document.body.appendChild(saveBtn);
 
       saveBtn.onclick = () => {
-        // assuming multiple py files are allowed,
-        //   pyIDE.code could be an array of files
         const sourceCode = pyIDE.code[0];
-        // pyIDE.output could be output from
-        //   latest Run (including errors)
         const output = pyIDE.output;
 
         console.log("filename", sourceCode.name);
         console.log("source", sourceCode.content);
         console.log("output", output);
 
-        // Also display in the UI for demo purposes
         document.getElementById(
           "outputInfo"
         ).textContent = `Saved!\nFilename: ${sourceCode.name}\nContent length: ${sourceCode.content.length} chars\nOutput length: ${output.length} chars`;
       };
 
-      // maybe can even have events, something like this --
       pyIDE.addEventListener("input", (e) => {
-        // runs as user is typing code
         console.log("unsaved changes in code");
 
-        // Display in event log
         const eventLog = document.getElementById("eventLog");
         eventLog.textContent += `[${new Date().toLocaleTimeString()}] INPUT: User is typing in ${
           e.detail.fileName
@@ -138,8 +135,6 @@
       pyIDE.addEventListener("change", (e) => {
         // runs after user tabs away
         console.log("new code", pyIDE.code[0].content);
-        // would be nice to know which of the files changed
-        // though i'm not sure the best way to implement that
 
         // Display in event log
         const eventLog = document.getElementById("eventLog");
@@ -148,12 +143,10 @@
         } (ID: ${e.detail.fileId}) was modified\n`;
         eventLog.scrollTop = eventLog.scrollHeight;
 
-        // Update code display
         updateCodeInfo();
       });
 
       pyIDE.addEventListener("submit", (e) => {
-        // runs when user hits the Run btn
         console.log("Code execution started for:", e.detail.fileName);
 
         // Display in event log
@@ -163,28 +156,20 @@
         }\n`;
         eventLog.scrollTop = eventLog.scrollHeight;
 
-        setTimeout(
-          // wait for 1sec to collect output, then display
-          () => {
-            console.log("new output", pyIDE.output);
+        setTimeout(() => {
+          console.log("new output", pyIDE.output);
 
-            // Update output display
-            document.getElementById("outputInfo").textContent = pyIDE.output;
+          document.getElementById("outputInfo").textContent = pyIDE.output;
 
-            // Log completion
-            const eventLog = document.getElementById("eventLog");
-            eventLog.textContent += `[${new Date().toLocaleTimeString()}] EXECUTION COMPLETE: Output updated\n`;
-            eventLog.scrollTop = eventLog.scrollHeight;
-          },
-          1000
-        );
+          const eventLog = document.getElementById("eventLog");
+          eventLog.textContent += `[${new Date().toLocaleTimeString()}] EXECUTION COMPLETE: Output updated\n`;
+          eventLog.scrollTop = eventLog.scrollHeight;
+        }, 1000);
       });
 
       pyIDE.addEventListener("save", (e) => {
-        // runs when user clicks the Save button in the component
         console.log("Save event triggered:", e.detail);
 
-        // Display in event log
         const eventLog = document.getElementById("eventLog");
         eventLog.textContent += `[${new Date().toLocaleTimeString()}] SAVE: ${
           e.detail.files.length

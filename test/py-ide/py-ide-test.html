@@ -100,7 +100,6 @@
         <h2>Basic Usage</h2>
         <p>This demonstrates the basic usage of the PyIDE web component:</p>
 
-        <!-- This is the web component -->
         <py-ide id="pyIDE"></py-ide>
       </div>
 
@@ -158,11 +157,9 @@
       </div>
     </div>
 
-    <!-- Load the web component -->
     <script src="src/components/PyIDEWebComponent.js"></script>
 
     <script>
-      // Get references to the component and UI elements
       const pyIDE = document.getElementById("pyIDE");
       const codeDisplay = document.getElementById("codeDisplay");
       const outputDisplay = document.getElementById("outputDisplay");
@@ -171,7 +168,6 @@
 
       let eventCount = 0;
 
-      // Helper function to log events
       function logEvent(eventType, data) {
         eventCount++;
         const timestamp = new Date().toLocaleTimeString();
@@ -184,7 +180,7 @@
         eventLog.scrollTop = eventLog.scrollHeight;
       }
 
-      // Event listeners for the PyIDE component
+      // event listeners for the PyIDE component
       pyIDE.addEventListener("input", (e) => {
         logEvent("INPUT", {
           fileName: e.detail.fileName,
@@ -209,7 +205,6 @@
           contentLength: e.detail.content.length,
         });
 
-        // Wait for execution to complete, then show output
         setTimeout(() => {
           outputDisplay.textContent = pyIDE.output;
           logEvent("EXECUTION_COMPLETE", {
@@ -231,7 +226,6 @@
         } files at ${new Date(e.detail.timestamp).toLocaleTimeString()}`;
       });
 
-      // API demo buttons
       document.getElementById("getCodeBtn").addEventListener("click", () => {
         const code = pyIDE.code;
         codeDisplay.textContent = JSON.stringify(code, null, 2);
@@ -242,7 +236,6 @@
       });
 
       document.getElementById("setCodeBtn").addEventListener("click", () => {
-        // Set example code using the new setCode method
         const exampleFiles = [
           {
             name: "example.py",
@@ -305,7 +298,6 @@ print(f"Range: {max_val - min_val}")
       });
 
       document.getElementById("addFileBtn").addEventListener("click", () => {
-        // This will trigger the component's add file functionality
         pyIDE.shadowRoot.getElementById("addFileBtn").click();
       });
 
@@ -326,7 +318,6 @@ print(f"Range: {max_val - min_val}")
           totalFiles: allCode.length,
         };
 
-        // In a real app, you'd send this to a server
         localStorage.setItem("pyide-save", JSON.stringify(saveData));
 
         integrationOutput.textContent = `Saved ${
@@ -340,7 +331,6 @@ print(f"Range: {max_val - min_val}")
       });
 
       document.getElementById("loadBtn").addEventListener("click", () => {
-        // Load an example project
         const exampleProject = {
           files: [
             {
