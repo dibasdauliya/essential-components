@@ -1,0 +1,8 @@
+{
+  "label": "Py IDE",
+  "position": 6,
+  "link": {
+    "type": "generated-index",
+    "description": "An in-browser Python IDE powered by Pyodide with multi-file editing, CodeMirror, and plot rendering."
+  }
+}

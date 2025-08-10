@@ -1,0 +1,79 @@
+import { PyIDE } from "@site/src/components/py-ide";
+
+# Py IDE
+
+The `<py-ide>` component is an in-browser Python IDE powered by Pyodide. It provides:
+
+- **Multi-file editing** with tabs
+- **[CodeMirror](https://codemirror.net)** editor with Python syntax highlighting
+- **Run/Save/Clear** controls and resizable panes
+- **Live output** including inline images for <code>[matplotlib](https://matplotlib.org)</code> plots
+- **Local persistence** via `localStorage`
+
+## Import
+
+```javascript
+import "essential-components/src/py-ide";
+```
+
+## Basic Usage
+
+```html
+<py-ide></py-ide>
+```
+
+## Usage with Passing Files
+
+```html
+<py-ide>
+  <script type="text/plain" data-filename="main.py">
+    print("Hello from PyIDE 👋")
+    for i in range(3):
+        print(f"Line {i+1}")
+  </script>
+</py-ide>
+```
+
+## Live Example
+
+<div style={{ margin: "1.5rem 0" }}>
+  <PyIDE
+    storageKey="docs-py-ide"
+    files={[
+      {
+        name: "hello.py",
+        content: "print('Hello from py-ide 👋')",
+      },
+      {
+        name: "utils.py",
+        content: "def square(x): return x*x",
+      },
+    ]}
+  />
+</div>
+
+## Programmatic API
+
+Access properties and methods from JavaScript:
+
+```js
+const ide = document.querySelector("py-ide");
+
+console.log(ide.code); // [{ name, content }, ...]
+console.log(ide.output); // string
+
+// Replace all files
+ide.setCode([{ name: "example.py", content: 'print("hi")' }]);
+
+// Listen to events
+ide.addEventListener("input", (e) => console.log("input", e.detail));
+ide.addEventListener("change", (e) => console.log("change", e.detail));
+ide.addEventListener("submit", (e) => console.log("submit", e.detail));
+ide.addEventListener("save", (e) => console.log("save", e.detail));
+```
+
+## Notes
+
+- First load installs common packages (`requests`, `numpy`, `matplotlib`) via `micropip` in Pyodide.
+- For multi-file initialization, pass multiple `<script type="text/plain" data-filename="...">` blocks as children.
+- Images printed by `matplotlib` are embedded directly into the output.
