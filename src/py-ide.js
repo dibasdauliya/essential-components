@@ -20,6 +20,10 @@ class PyIDEWebComponent extends HTMLElement {
     this.isRunning = false;
     this.lastOutput = "";
     this.installedPackages = new Set();
+    // Flags for lifecycle coordination (React/SSR-safe)
+    this._loadedFromStorage = false;
+    this._parsedInitialFiles = false;
+    this._childrenObserver = null;
 
     // Debounced input handler
     this.inputTimeout = null;
@@ -29,6 +33,7 @@ class PyIDEWebComponent extends HTMLElement {
   }
   // Read initial files passed via light DOM children
   parseInitialFilesFromLightDom() {
+    console.log("here");
     try {
       const files = [];
 
@@ -48,8 +53,12 @@ class PyIDEWebComponent extends HTMLElement {
         }
       );
 
+      console.log("here2");
+      console.log({ files });
+
       return files.length > 0 ? files : null;
-    } catch (_) {
+    } catch (e) {
+      console.log({ e });
       return null;
     }
   }
@@ -185,11 +194,7 @@ class PyIDEWebComponent extends HTMLElement {
   init() {
     this.render();
     this.bindEvents();
-    // Load initial files from user's code
-    const initialFiles = this.parseInitialFilesFromLightDom();
-    if (initialFiles && initialFiles.length > 0) {
-      this.setCode(initialFiles);
-    }
+    // Do NOT parse light DOM here. In React, children may not be appended yet.
     this.loadFromStorage();
     // ensure initial tabs render when there is no saved state
     if (this.files && this.files.length > 0) {
@@ -224,6 +229,37 @@ class PyIDEWebComponent extends HTMLElement {
 
   connectedCallback() {
     this.loadPyodide();
+
+    // Defer parsing light DOM so React has time to append children
+    const tryParseChildren = () => {
+      if (this._parsedInitialFiles) return;
+      const initialFiles = this.parseInitialFilesFromLightDom();
+      if (initialFiles && initialFiles.length > 0) {
+        // Only apply if nothing meaningful was loaded from storage
+        const hasOnlyDefault =
+          this.files.length === 1 &&
+          this.files[0].id === "main-py" &&
+          typeof this.files[0].content === "string" &&
+          this.files[0].content.includes("Hello, World!");
+
+        if (!this._loadedFromStorage || hasOnlyDefault) {
+          this.setCode(initialFiles);
+        }
+        this._parsedInitialFiles = true;
+        if (this._childrenObserver) {
+          this._childrenObserver.disconnect();
+          this._childrenObserver = null;
+        }
+      }
+    };
+
+    // Try on next microtask and animation frame
+    queueMicrotask(tryParseChildren);
+    requestAnimationFrame(tryParseChildren);
+
+    // Fallback: observe for late-added children (e.g., React)
+    this._childrenObserver = new MutationObserver(() => tryParseChildren());
+    this._childrenObserver.observe(this, { childList: true, subtree: true });
   }
 
   disconnectedCallback() {
@@ -232,6 +268,10 @@ class PyIDEWebComponent extends HTMLElement {
     }
     if (this.codeMirror) {
       this.codeMirror.toTextArea();
+    }
+    if (this._childrenObserver) {
+      this._childrenObserver.disconnect();
+      this._childrenObserver = null;
     }
   }
 
@@ -328,6 +368,7 @@ class PyIDEWebComponent extends HTMLElement {
       if (this.lastOutput) {
         this.updateOutput(this.lastOutput);
       }
+      this._loadedFromStorage = true;
     } catch (err) {
       console.warn("PyIDE: Failed to load from localStorage:", err);
     }
