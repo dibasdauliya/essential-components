@@ -31,6 +31,9 @@ import "essential-components/src/py-ide";
     for i in range(3):
         print(f"Line {i+1}")
   </script>
+  <script type="text/plain" data-filename="utils.py">
+    def square(x): return x*x
+  </script>
 </py-ide>
 ```
 
@@ -38,11 +41,12 @@ import "essential-components/src/py-ide";
 
 <div style={{ margin: "1.5rem 0" }}>
   <PyIDE
-    storageKey="docs-py-ide"
     files={[
       {
-        name: "hello.py",
-        content: "print('Hello from py-ide 👋')",
+        name: "main.py",
+        content: `print("Hello from PyIDE 👋")
+for i in range(3):
+      print(f"Line {i+1}")`,
       },
       {
         name: "utils.py",
@@ -51,6 +55,38 @@ import "essential-components/src/py-ide";
     ]}
   />
 </div>
+
+## Local Storage (storage-key)
+
+- **what**: A unique key used to persist the IDE state in `localStorage` (files, open tabs, active file, and last output)
+- **default**: `"py-ide"`
+- **why**: Use different keys to prevent pages/widgets from overwriting each other
+
+### Set a custom key (HTML)
+
+```html
+<py-ide storage-key="docs-pyide-intro">
+  <script type="text/plain" data-filename="main.py">
+    print("Hello")
+  </script>
+</py-ide>
+```
+
+### Set a custom key (React/MDX)
+
+```tsx
+import { PyIDE } from "@site/src/components/py-ide";
+
+<PyIDE storageKey="docs-pyide-intro" />;
+```
+
+### Clear saved state
+
+```js
+localStorage.removeItem("docs-pyide-intro");
+```
+
+> Tip: If you need truly isolated sessions for demos, give each demo a different `storage-key`.
 
 ## Programmatic API
 

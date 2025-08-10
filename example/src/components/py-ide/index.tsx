@@ -4,7 +4,10 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      "py-ide": {
+      "py-ide": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
         "storage-key"?: string;
       };
     }
@@ -41,28 +44,20 @@ export function PyIDE({
                 },
               ];
 
-        return (
-          <py-ide>
-            <script type="text/plain" data-filename="main.py">
-              print("Hello from script tag")
-            </script>
-            <script type="text/plain" data-filename="maths.py">
-              def square(x): return x*x
-            </script>
-          </py-ide>
+        const scriptChildren = providedFiles.map((f, idx) =>
+          React.createElement("script", {
+            type: "text/plain",
+            "data-filename": f.name,
+            key: `${f.name}-${idx}`,
+            dangerouslySetInnerHTML: { __html: f.content },
+          })
         );
 
-        // return React.createElement(
-        //   "py-ide",
-        //   providedFiles.map((f, idx) =>
-        //     React.createElement("script", {
-        //       type: "text/plain",
-        //       "data-filename": f.name,
-        //       key: `${f.name}-${idx}`,
-        //       dangerouslySetInnerHTML: { __html: f.content },
-        //     })
-        //   )
-        // );
+        return React.createElement(
+          "py-ide",
+          { "storage-key": storageKey },
+          ...scriptChildren
+        );
       }}
     </BrowserOnly>
   );
