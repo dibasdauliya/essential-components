@@ -35,5 +35,11 @@ declare namespace JSX {
       React.HTMLAttributes<HTMLElement>,
       HTMLElement
     > & { title?: string; placeholder?: string };
+    "py-ide": React.DetailedHTMLProps<
+      React.HTMLAttributes<HTMLElement>,
+      HTMLElement
+    > & {
+      "storage-key"?: string;
+    };
   }
 }

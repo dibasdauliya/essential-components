@@ -1,4 +1,4 @@
-import { PyIDE } from "@site/src/components/py-ide";
+import { PyIDEInteractiveDemo } from "@site/src/components/py-ide/InteractiveDemo";
 
 # Py IDE
 
@@ -32,29 +32,14 @@ import "essential-components/src/py-ide";
         print(f"Line {i+1}")
   </script>
   <script type="text/plain" data-filename="utils.py">
-    def square(x): return x*x
+    def sqr(x): return x*x
   </script>
 </py-ide>
 ```
 
 ## Live Example
 
-<div style={{ margin: "1.5rem 0" }}>
-  <PyIDE
-    files={[
-      {
-        name: "main.py",
-        content: `print("Hello from PyIDE 👋")
-for i in range(3):
-      print(f"Line {i+1}")`,
-      },
-      {
-        name: "utils.py",
-        content: "def square(x): return x*x",
-      },
-    ]}
-  />
-</div>
+<PyIDEInteractiveDemo />
 
 ## Local Storage (storage-key)
 
@@ -95,10 +80,10 @@ Access properties and methods from JavaScript:
 ```js
 const ide = document.querySelector("py-ide");
 
-console.log(ide.code); // [{ name, content }, ...]
-console.log(ide.output); // string
+console.log(ide.code); // [{ name: "main.py", content: "print('Hello from PyIDE 👋')..." }, ...]
+console.log(ide.output); // Hello from PyIDE 👋...
 
-// Replace all files
+// Set files
 ide.setCode([{ name: "example.py", content: 'print("hi")' }]);
 
 // Listen to events
@@ -108,8 +93,95 @@ ide.addEventListener("submit", (e) => console.log("submit", e.detail));
 ide.addEventListener("save", (e) => console.log("save", e.detail));
 ```
 
-## Notes
+### Event Integration (Vanilla JS)
 
-- First load installs common packages (`requests`, `numpy`, `matplotlib`) via `micropip` in Pyodide.
-- For multi-file initialization, pass multiple `<script type="text/plain" data-filename="...">` blocks as children.
-- Images printed by `matplotlib` are embedded directly into the output.
+```html
+<py-ide id="demo-ide" storage-key="docs-pyide-events">
+  <script type="text/plain" data-filename="main.py">
+    print("Hello from events example")
+  </script>
+</py-ide>
+
+<button id="getCodeBtn">Get Code</button>
+<button id="getOutputBtn">Get Output</button>
+<pre id="codeDisplay"></pre>
+<pre id="outputDisplay"></pre>
+
+<script>
+  const ide = document.getElementById("demo-ide");
+  const codeDisplay = document.getElementById("codeDisplay");
+  const outputDisplay = document.getElementById("outputDisplay");
+  const getCodeBtn = document.getElementById("getCodeBtn");
+  const getOutputBtn = document.getElementById("getOutputBtn");
+
+  // Listen to events
+  ide.addEventListener("input", (e) => console.log("INPUT", e.detail));
+  ide.addEventListener("change", (e) => console.log("CHANGE", e.detail));
+  ide.addEventListener("submit", (e) => console.log("SUBMIT", e.detail));
+  ide.addEventListener("save", (e) => console.log("SAVE", e.detail));
+
+  getCodeBtn.addEventListener("click", () => {
+    codeDisplay.textContent = JSON.stringify(ide.code, null, 2);
+  });
+  getOutputBtn.addEventListener("click", () => {
+    outputDisplay.textContent = ide.output;
+  });
+</script>
+```
+
+### Event Integration (React)
+
+```tsx
+import React, { useEffect, useRef } from "react";
+import "essential-components/src/py-ide";
+
+export default function PyIDEInteractiveDemo() {
+  const pyIdeRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const el = pyIdeRef.current;
+
+    if (!el) {
+      console.warn("py-ide element not found in the DOM.");
+      return;
+    }
+
+    const onInput = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log("INPUT", customEvent.detail);
+    };
+    const onChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log("CHANGE", customEvent.detail);
+    };
+    const onSubmit = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log("SUBMIT", customEvent.detail);
+    };
+    const onSave = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log("SAVE", customEvent.detail);
+    };
+
+    el.addEventListener("input", onInput);
+    el.addEventListener("change", onChange);
+    el.addEventListener("submit", onSubmit);
+    el.addEventListener("save", onSave);
+
+    return () => {
+      el.removeEventListener("input", onInput);
+      el.removeEventListener("change", onChange);
+      el.removeEventListener("submit", onSubmit);
+      el.removeEventListener("save", onSave);
+    };
+  }, []);
+
+  return (
+    <py-ide ref={pyIdeRef} storage-key="docs-pyide-react">
+      <script type="text/plain" data-filename="main.py">
+        {"print('React events demo')"}
+      </script>
+    </py-ide>
+  );
+}
+```
