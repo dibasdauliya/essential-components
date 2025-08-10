@@ -1,25 +1,25 @@
 class ActivitiesWidget extends HTMLElement {
-	constructor() {
-		super();
-		this.attachShadow({ mode: 'open' });
-		this.activeActivity = 1;
-		this.count = 0;
-		this.activities = [];
-	}
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this.activeActivity = 1;
+    this.count = 0;
+    this.activities = [];
+  }
 
-	connectedCallback() {
-		this.setupActivities();
-		this.render();
-	}
+  connectedCallback() {
+    this.setupActivities();
+    this.render();
+  }
 
-	setupActivities() {
-		// Get the activities from light DOM and move them to shadow DOM
-		this.activities = Array.from(this.querySelectorAll('.activity'));
-		this.count = this.activities.length;
-	}
+  setupActivities() {
+    // Get the activities from light DOM and move them to shadow DOM
+    this.activities = Array.from(this.querySelectorAll(".activity"));
+    this.count = this.activities.length;
+  }
 
-	render() {
-		this.shadowRoot.innerHTML = `
+  render() {
+    this.shadowRoot.innerHTML = `
 			<style>
 				@property --rotate {
 					syntax: "<angle>";
@@ -33,6 +33,18 @@ class ActivitiesWidget extends HTMLElement {
 					font-family: system-ui, sans-serif;
 					line-height: 1.5;
 					margin: 16px;
+
+					/* Light defaults */
+					--aw-text-primary: #222;
+					--aw-text-secondary: #555;
+					--aw-text-muted: #888;
+					--aw-button-bg: #ffffff;
+					--aw-button-border: #dddddd;
+					--aw-button-hover-bg: #f0f0f0;
+					--aw-button-hover-border: #bbbbbb;
+					--aw-image-border: #ffffff;
+
+					color: var(--aw-text-primary);
 				}
 
 				.widget-container {
@@ -95,7 +107,7 @@ class ActivitiesWidget extends HTMLElement {
 					width: 100%;
 					height: 100%;
 					border-radius: 0.25rem;
-					border: 3px solid white;
+					border: 3px solid var(--aw-image-border);
 					box-shadow: 0 0 5px #0003;
 					object-fit: cover;
 					display: block;
@@ -122,13 +134,13 @@ class ActivitiesWidget extends HTMLElement {
 				.text-display h3 {
 					margin: 0 0 0.5rem 0;
 					font-size: 1.2rem;
-					color: #333;
+					color: var(--aw-text-primary);
 				}
 
 				.text-display p {
 					margin: 0;
 					font-size: 1rem;
-					color: #666;
+					color: var(--aw-text-secondary);
 					line-height: 1.4;
 				}
 
@@ -137,7 +149,7 @@ class ActivitiesWidget extends HTMLElement {
 					grid-row: 1;
 					font-weight: bold;
 					font-size: 0.9rem;
-					color: #888;
+					color: var(--aw-text-muted);
 					align-self: start;
 				}
 
@@ -149,19 +161,20 @@ class ActivitiesWidget extends HTMLElement {
 				}
 
 				.activities-nav button {
-					background: white;
-					border: 2px solid #ddd;
+					background: var(--aw-button-bg);
+					border: 2px solid var(--aw-button-border);
 					border-radius: 0.25rem;
 					padding: 0.5rem 0.8rem;
 					margin-right: 0.5rem;
 					cursor: pointer;
 					font-size: 1rem;
 					transition: all 0.2s ease;
+					color: var(--aw-text-primary);
 				}
 
 				.activities-nav button:hover {
-					background: #f0f0f0;
-					border-color: #bbb;
+					background: var(--aw-button-hover-bg);
+					border-color: var(--aw-button-hover-border);
 				}
 
 				.activities-nav button:disabled {
@@ -219,152 +232,195 @@ class ActivitiesWidget extends HTMLElement {
 				:host([compact]) .text-display p {
 					font-size: 0.9rem;
 				}
+
+				/* Dark mode overrides */
+				:host([theme="dark"]),
+				:host-context([data-theme="dark"]) {
+					--aw-text-primary: #f5f5f5;
+					--aw-text-secondary: #cbd5e1;
+					--aw-text-muted: #9aa4b2;
+					--aw-button-bg: #111827;
+					--aw-button-border: #374151;
+					--aw-button-hover-bg: #1f2937;
+					--aw-button-hover-border: #4b5563;
+					--aw-image-border: #374151;
+				}
+
+				@media (prefers-color-scheme: dark) {
+					:host {
+						--aw-text-primary: #f5f5f5;
+						--aw-text-secondary: #cbd5e1;
+						--aw-text-muted: #9aa4b2;
+						--aw-button-bg: #111827;
+						--aw-button-border: #374151;
+						--aw-button-hover-bg: #1f2937;
+						--aw-button-hover-border: #4b5563;
+						--aw-image-border: #374151;
+					}
+				}
 			</style>
 			<div class="widget-container">
 				<div class="activities-container"></div>
 				<div class="activities-count">${this.activeActivity} / ${this.count}</div>
 				<div class="text-display"></div>
 				<nav class="activities-nav">
-					<button id="prev-btn" aria-label="previous activity">${this.getAttribute('prev-text') || '←'}</button>
-					<button id="next-btn" aria-label="next activity">${this.getAttribute('next-text') || '→'}</button>
+					<button id="prev-btn" aria-label="previous activity">${
+            this.getAttribute("prev-text") || "←"
+          }</button>
+					<button id="next-btn" aria-label="next activity">${
+            this.getAttribute("next-text") || "→"
+          }</button>
 				</nav>
 			</div>
 		`;
 
-		// Move activities to shadow DOM
-		const container = this.shadowRoot.querySelector('.activities-container');
-		
-		this.activities.forEach((activity, index) => {
-			const activityClone = activity.cloneNode(true);
-			// Remove the text from the activity clone since we'll display it separately
-			const textElement = activityClone.querySelector('.text');
-			if (textElement) {
-				textElement.remove();
-			}
-			container.appendChild(activityClone);
-		});
+    // Move activities to shadow DOM
+    const container = this.shadowRoot.querySelector(".activities-container");
 
-		// Update activities reference to shadow DOM elements
-		this.activities = Array.from(container.querySelectorAll('.activity'));
+    this.activities.forEach((activity, index) => {
+      const activityClone = activity.cloneNode(true);
+      // Remove the text from the activity clone since we'll display it separately
+      const textElement = activityClone.querySelector(".text");
+      if (textElement) {
+        textElement.remove();
+      }
+      container.appendChild(activityClone);
+    });
 
-		// Set first activity as active and show its text
-		if (this.activities.length > 0) {
-			this.makeActive(0);
-		}
+    // Update activities reference to shadow DOM elements
+    this.activities = Array.from(container.querySelectorAll(".activity"));
 
-		this.updateCounter();
-		this.updateButtons();
+    // Set first activity as active and show its text
+    if (this.activities.length > 0) {
+      this.makeActive(0);
+    }
 
-		// Add event listeners
-		this.shadowRoot.getElementById('prev-btn').addEventListener('click', () => this.movePrevious());
-		this.shadowRoot.getElementById('next-btn').addEventListener('click', () => this.moveNext());
-	}
+    this.updateCounter();
+    this.updateButtons();
 
-	showActiveText() {
-		const textContainer = this.shadowRoot.querySelector('.text-display');
-		const originalActivities = Array.from(this.querySelectorAll('.activity'));
-		const activeIndex = this.activeActivity - 1;
-		
-		if (originalActivities[activeIndex] && textContainer) {
-			const textElement = originalActivities[activeIndex].querySelector('.text');
-			if (textElement) {
-				// Temporarily hide with animation
-				textContainer.classList.add('hidden');
-				
-				setTimeout(() => {
-					textContainer.innerHTML = textElement.innerHTML;
-					textContainer.classList.remove('hidden');
-				}, 100);
-			}
-		}
-	}
+    // Add event listeners
+    this.shadowRoot
+      .getElementById("prev-btn")
+      .addEventListener("click", () => this.movePrevious());
+    this.shadowRoot
+      .getElementById("next-btn")
+      .addEventListener("click", () => this.moveNext());
+  }
 
-	movePrevious() {
-		if (this.activeActivity > 1) {
-			this.activeActivity = this.activeActivity - 1;
-			this.makeActive(this.activeActivity - 1);
-		}
-	}
+  showActiveText() {
+    const textContainer = this.shadowRoot.querySelector(".text-display");
+    const originalActivities = Array.from(this.querySelectorAll(".activity"));
+    const activeIndex = this.activeActivity - 1;
 
-	moveNext() {
-		if (this.activeActivity < this.count) {
-			this.activeActivity = this.activeActivity + 1;
-			this.makeActive(this.activeActivity - 1);
-		}
-	}
+    if (originalActivities[activeIndex] && textContainer) {
+      const textElement =
+        originalActivities[activeIndex].querySelector(".text");
+      if (textElement) {
+        // Temporarily hide with animation
+        textContainer.classList.add("hidden");
 
-	makeActive(index) {
-		if (!this.activities || index >= this.activities.length) return;
+        setTimeout(() => {
+          textContainer.innerHTML = textElement.innerHTML;
+          textContainer.classList.remove("hidden");
+        }, 100);
+      }
+    }
+  }
 
-		// Remove active class from all activities
-		this.activities.forEach((el, i) => {
-			el.classList.remove('active');
-		});
+  movePrevious() {
+    if (this.activeActivity > 1) {
+      this.activeActivity = this.activeActivity - 1;
+      this.makeActive(this.activeActivity - 1);
+    }
+  }
 
-		// Add active class to the selected activity
-		this.activities[index].classList.add('active');
+  moveNext() {
+    if (this.activeActivity < this.count) {
+      this.activeActivity = this.activeActivity + 1;
+      this.makeActive(this.activeActivity - 1);
+    }
+  }
 
-		// Add animation class to the host
-		this.classList.add('children-animating');
-		
-		// Remove animation class after animation completes
-		setTimeout(() => {
-			this.classList.remove('children-animating');
-		}, 500);
-		
-		this.showActiveText();
-		this.updateCounter();
-		this.updateButtons();
-	}
+  makeActive(index) {
+    if (!this.activities || index >= this.activities.length) return;
 
-	updateCounter() {
-		const counter = this.shadowRoot.querySelector('.activities-count');
-		if (counter) {
-			const format = this.getAttribute('counter-format') || '{current} / {total}';
-			counter.textContent = format
-				.replace('{current}', this.activeActivity)
-				.replace('{total}', this.count);
-		}
-	}
+    // Remove active class from all activities
+    this.activities.forEach((el, i) => {
+      el.classList.remove("active");
+    });
 
-	updateButtons() {
-		const prevBtn = this.shadowRoot.getElementById('prev-btn');
-		const nextBtn = this.shadowRoot.getElementById('next-btn');
-		
-		if (prevBtn) {
-			prevBtn.disabled = this.activeActivity <= 1;
-		}
-		
-		if (nextBtn) {
-			nextBtn.disabled = this.activeActivity >= this.count;
-		}
-	}
+    // Add active class to the selected activity
+    this.activities[index].classList.add("active");
 
-	// Allow dynamic updates
-	static get observedAttributes() {
-		return ['prev-text', 'next-text', 'counter-format', 'hide-counter', 'hide-nav', 'compact'];
-	}
+    // Add animation class to the host
+    this.classList.add("children-animating");
 
-	attributeChangedCallback(name, oldValue, newValue) {
-		if (this.shadowRoot) {
-			if (name === 'prev-text' || name === 'next-text') {
-				this.updateButtons();
-				const prevBtn = this.shadowRoot.getElementById('prev-btn');
-				const nextBtn = this.shadowRoot.getElementById('next-btn');
-				if (name === 'prev-text' && prevBtn) {
-					prevBtn.textContent = newValue || '←';
-				}
-				if (name === 'next-text' && nextBtn) {
-					nextBtn.textContent = newValue || '→';
-				}
-			}
-			if (name === 'counter-format') {
-				this.updateCounter();
-			}
-		}
-	}
+    // Remove animation class after animation completes
+    setTimeout(() => {
+      this.classList.remove("children-animating");
+    }, 500);
+
+    this.showActiveText();
+    this.updateCounter();
+    this.updateButtons();
+  }
+
+  updateCounter() {
+    const counter = this.shadowRoot.querySelector(".activities-count");
+    if (counter) {
+      const format =
+        this.getAttribute("counter-format") || "{current} / {total}";
+      counter.textContent = format
+        .replace("{current}", this.activeActivity)
+        .replace("{total}", this.count);
+    }
+  }
+
+  updateButtons() {
+    const prevBtn = this.shadowRoot.getElementById("prev-btn");
+    const nextBtn = this.shadowRoot.getElementById("next-btn");
+
+    if (prevBtn) {
+      prevBtn.disabled = this.activeActivity <= 1;
+    }
+
+    if (nextBtn) {
+      nextBtn.disabled = this.activeActivity >= this.count;
+    }
+  }
+
+  // Allow dynamic updates
+  static get observedAttributes() {
+    return [
+      "prev-text",
+      "next-text",
+      "counter-format",
+      "hide-counter",
+      "hide-nav",
+      "compact",
+    ];
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (this.shadowRoot) {
+      if (name === "prev-text" || name === "next-text") {
+        this.updateButtons();
+        const prevBtn = this.shadowRoot.getElementById("prev-btn");
+        const nextBtn = this.shadowRoot.getElementById("next-btn");
+        if (name === "prev-text" && prevBtn) {
+          prevBtn.textContent = newValue || "←";
+        }
+        if (name === "next-text" && nextBtn) {
+          nextBtn.textContent = newValue || "→";
+        }
+      }
+      if (name === "counter-format") {
+        this.updateCounter();
+      }
+    }
+  }
 }
 
-customElements.define('activities-widget', ActivitiesWidget);
+customElements.define("activities-widget", ActivitiesWidget);
 
-export { ActivitiesWidget }; 
+export { ActivitiesWidget };
