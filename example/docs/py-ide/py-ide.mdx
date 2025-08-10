@@ -26,6 +26,13 @@ import "essential-components/src/py-ide";
 
 ```html
 <py-ide>
+  <py-file name="main.py">print("Hello from PyIDE 👋")</py-file>
+  <py-file name="utils.py">def sqr(x): return x*x</py-file>
+</py-ide>
+
+<!-- or, you can use <script> tags -->
+
+<py-ide>
   <script type="text/plain" data-filename="main.py">
     print("Hello from PyIDE 👋")
     for i in range(3):
