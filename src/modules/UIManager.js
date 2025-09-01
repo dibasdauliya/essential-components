@@ -307,6 +307,62 @@ export class UIManager {
             display: flex;
             flex-wrap: wrap;
           }
+
+          .py-ide-empty-state {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            color: #888888;
+            text-align: center;
+            padding: 40px 20px;
+          }
+
+          .py-ide-empty-state h3 {
+            margin: 0 0 20px 0;
+            color: #cccccc;
+            font-size: 24px;
+            font-weight: 500;
+          }
+
+          .py-ide-empty-state p {
+            margin: 0 0 30px 0;
+            font-size: 16px;
+            line-height: 1.5;
+            max-width: 400px;
+          }
+
+          .py-ide-create-file-btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 2px 8px rgba(14, 99, 156, 0.3);
+          }
+
+          .py-ide-create-file-btn:hover {
+            background: #1177bb;
+            box-shadow: 0 4px 12px rgba(14, 99, 156, 0.4);
+          }
+
+          .py-ide-create-file-btn:active {
+            transform: translateY(1px);
+          }
+
+          .py-ide-editor-container.hidden {
+            display: none;
+          }
+
+          .py-ide-controls.hidden {
+            display: none;
+          }
   
           @media (max-width: 768px) {
             .py-ide-main {
@@ -342,13 +398,19 @@ export class UIManager {
                 <div id="fileTabs"></div>
               </div>
   
-              <div class="py-ide-editor-container">
+              <div class="py-ide-editor-container" id="editorContainerWrap">
                 <div class="py-ide-editor-wrap">
                   <div id="editorContainer"></div>
                 </div>
               </div>
-  
-              <div class="py-ide-controls">
+
+              <div class="py-ide-empty-state" id="emptyState">
+                <h3>Welcome to PyIDE</h3>
+                <p>Get started by creating your first Python file. You can write, run, and test your Python code right here in the browser.</p>
+                <button class="py-ide-create-file-btn" id="createFileBtn">Create New File</button>
+              </div>
+
+              <div class="py-ide-controls" id="editorControls">
                 <button class="py-ide-button" id="runBtn" disabled>Run</button>
                 <div class="py-ide-indent-control">
                   <label for="indentSelect" style="font-size: 12px; color: #cccccc; margin-right: 5px;">Indent:</label>
@@ -531,6 +593,30 @@ export class UIManager {
     const indentSelect = this.shadowRoot.getElementById("indentSelect");
     if (indentSelect) {
       indentSelect.value = indentSpaces.toString();
+    }
+  }
+
+  // Show or hide editor container based on whether files are open
+  showEditorContainer(show) {
+    const editorContainer = this.shadowRoot.getElementById(
+      "editorContainerWrap"
+    );
+    const editorControls = this.shadowRoot.getElementById("editorControls");
+    const emptyState = this.shadowRoot.getElementById("emptyState");
+    const fileTabs = this.shadowRoot.querySelector(".py-ide-file-tabs");
+
+    if (show) {
+      // Show editor and controls, hide empty state
+      if (editorContainer) editorContainer.classList.remove("hidden");
+      if (editorControls) editorControls.classList.remove("hidden");
+      if (emptyState) emptyState.style.display = "none";
+      if (fileTabs) fileTabs.style.display = "flex";
+    } else {
+      // Hide editor and controls, show empty state
+      if (editorContainer) editorContainer.classList.add("hidden");
+      if (editorControls) editorControls.classList.add("hidden");
+      if (emptyState) emptyState.style.display = "flex";
+      if (fileTabs) fileTabs.style.display = "none";
     }
   }
 

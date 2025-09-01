@@ -15,6 +15,7 @@ class PyIDEWebComponent extends HTMLElement {
       "show-save-button",
       "save-in-local-storage",
       "indent-spaces",
+      "start-empty",
     ];
   }
 
@@ -28,6 +29,7 @@ class PyIDEWebComponent extends HTMLElement {
     this.showSaveButton = true;
     this.saveInLocalStorage = true;
     this.indentSpaces = 4;
+    this.startEmpty = false;
 
     // Flags for lifecycle coordination (React/SSR-safe)
     this._loadedFromStorage = false;
@@ -50,6 +52,7 @@ class PyIDEWebComponent extends HTMLElement {
     this.saveInLocalStorage =
       this.getAttribute("save-in-local-storage") !== "false";
     this.indentSpaces = parseInt(this.getAttribute("indent-spaces")) || 4;
+    this.startEmpty = this.getAttribute("start-empty") === "true";
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -107,11 +110,22 @@ class PyIDEWebComponent extends HTMLElement {
     this.uiManager = new UIManager(this.shadowRoot, this.showSaveButton);
 
     // Initialize file manager with callback
-    this.fileManager = new FileManager(this.shadowRoot, (activeFile) => {
-      if (this.editorManager && activeFile) {
-        this.editorManager.setValue(activeFile.content);
-      }
-    });
+    this.fileManager = new FileManager(
+      this.shadowRoot,
+      (activeFile) => {
+        if (this.editorManager) {
+          if (activeFile) {
+            this.editorManager.setValue(activeFile.content);
+            // Show editor container
+            this.uiManager.showEditorContainer(true);
+          } else {
+            // No active file, hide editor container
+            this.uiManager.showEditorContainer(false);
+          }
+        }
+      },
+      this.startEmpty
+    );
 
     // Initialize PyodideRunner with callbacks
     this.pyodideRunner = new PyodideRunner(
@@ -142,6 +156,11 @@ class PyIDEWebComponent extends HTMLElement {
     this.uiManager.render();
     this.bindEvents();
 
+    // Set initial editor state based on whether files are open
+    const hasOpenFiles =
+      this.fileManager.openFiles && this.fileManager.openFiles.length > 0;
+    this.uiManager.showEditorContainer(hasOpenFiles);
+
     // Load from storage
     this.loadFromStorage();
 
@@ -158,6 +177,7 @@ class PyIDEWebComponent extends HTMLElement {
     const runBtn = this.shadowRoot.getElementById("runBtn");
     const clearOutputBtn = this.shadowRoot.getElementById("clearOutputBtn");
     const addFileBtn = this.shadowRoot.getElementById("addFileBtn");
+    const createFileBtn = this.shadowRoot.getElementById("createFileBtn");
     const saveBtn = this.showSaveButton
       ? this.shadowRoot.getElementById("saveBtn")
       : null;
@@ -165,6 +185,11 @@ class PyIDEWebComponent extends HTMLElement {
     runBtn.addEventListener("click", () => this.handleRun());
     clearOutputBtn.addEventListener("click", () => this.clearOutput());
     addFileBtn.addEventListener("click", () => this.fileManager.addFile());
+
+    // Bind the create file button in the empty state
+    if (createFileBtn) {
+      createFileBtn.addEventListener("click", () => this.fileManager.addFile());
+    }
 
     if (saveBtn) {
       this.bindSaveButton(saveBtn);
@@ -189,47 +214,51 @@ class PyIDEWebComponent extends HTMLElement {
 
   // Handle editor input with debouncing
   handleEditorInput(content) {
-    this.fileManager.updateActiveFileContent(content);
-
     const activeFile = this.fileManager.getActiveFile();
-    this.dispatchEvent(
-      new CustomEvent("input", {
-        detail: { content, fileName: activeFile?.name },
-      })
-    );
+    if (activeFile) {
+      this.fileManager.updateActiveFileContent(content);
 
-    // Auto-save on input
-    this.saveToStorage();
+      this.dispatchEvent(
+        new CustomEvent("input", {
+          detail: { content, fileName: activeFile.name },
+        })
+      );
+
+      // Auto-save on input
+      this.saveToStorage();
+    }
   }
 
   // Handle editor change (when user tabs away)
   handleEditorChange(content) {
-    this.fileManager.updateActiveFileContent(content);
-
     const activeFile = this.fileManager.getActiveFile();
-    this.dispatchEvent(
-      new CustomEvent("change", {
-        detail: {
-          content: activeFile.content,
-          fileName: activeFile.name,
-          fileId: activeFile.id,
-        },
-      })
-    );
+    if (activeFile) {
+      this.fileManager.updateActiveFileContent(content);
 
-    this.saveToStorage();
-
-    // Update save button state
-    this.uiManager.updateButtonState("saveBtn", true, "Saving...", "Save");
-    setTimeout(() => {
-      this.uiManager.updateButtonState(
-        "saveBtn",
-        false,
-        "Saving...",
-        "Save",
-        true
+      this.dispatchEvent(
+        new CustomEvent("change", {
+          detail: {
+            content: activeFile.content,
+            fileName: activeFile.name,
+            fileId: activeFile.id,
+          },
+        })
       );
-    }, 150);
+
+      this.saveToStorage();
+
+      // Update save button state
+      this.uiManager.updateButtonState("saveBtn", true, "Saving...", "Save");
+      setTimeout(() => {
+        this.uiManager.updateButtonState(
+          "saveBtn",
+          false,
+          "Saving...",
+          "Save",
+          true
+        );
+      }, 150);
+    }
   }
 
   handleRun() {
@@ -329,7 +358,14 @@ class PyIDEWebComponent extends HTMLElement {
         if (data.lastOutput) {
           this.uiManager.updateOutput(data.lastOutput);
         }
+        // Update editor state based on loaded files
+        const hasOpenFiles =
+          this.fileManager.openFiles && this.fileManager.openFiles.length > 0;
+        this.uiManager.showEditorContainer(hasOpenFiles);
       }
+    } else {
+      // No saved data, ensure we start with the correct empty state
+      this.uiManager.showEditorContainer(false);
     }
   }
 

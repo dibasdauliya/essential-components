@@ -2,19 +2,27 @@
  * FileManager - Handles file operations, tabs, and file switching
  */
 export class FileManager {
-  constructor(shadowRoot, onFileChange) {
+  constructor(shadowRoot, onFileChange, startEmpty = false) {
     this.shadowRoot = shadowRoot;
     this.onFileChange = onFileChange;
-    this.files = [
-      {
-        id: "main-py",
-        name: "main.py",
-        content: 'print("Hello, World!")\n',
-        lastModified: Date.now(),
-      },
-    ];
-    this.activeFileId = "main-py";
-    this.openFiles = ["main-py"];
+
+    if (startEmpty) {
+      this.files = [];
+      this.activeFileId = null;
+      this.openFiles = [];
+    } else {
+      this.files = [
+        {
+          id: "main-py",
+          name: "main.py",
+          content: 'print("Hello, World!")\n',
+          lastModified: Date.now(),
+        },
+      ];
+      this.activeFileId = "main-py";
+      this.openFiles = ["main-py"];
+    }
+
     this._tabContainerEventListener = null;
   }
 
@@ -145,11 +153,17 @@ export class FileManager {
       }
 
       if (this.activeFileId === fileId) {
-        this.activeFileId =
-          this.openFiles.length > 0
-            ? this.openFiles[this.openFiles.length - 1]
-            : this.files[0]?.id;
-        this.loadActiveFile();
+        if (this.openFiles.length > 0) {
+          // Switch to the last open file
+          this.activeFileId = this.openFiles[this.openFiles.length - 1];
+          this.loadActiveFile();
+        } else {
+          // No open files, clear the editor
+          this.activeFileId = null;
+          if (this.onFileChange) {
+            this.onFileChange(null);
+          }
+        }
       }
 
       this.renderFileTabs();
@@ -181,6 +195,12 @@ export class FileManager {
     const openFiles = this.openFiles
       .map((id) => this.files.find((f) => f.id === id))
       .filter(Boolean);
+
+    if (openFiles.length === 0) {
+      // No open files, clear the tabs container
+      container.innerHTML = "";
+      return;
+    }
 
     container.innerHTML = openFiles
       .map(
