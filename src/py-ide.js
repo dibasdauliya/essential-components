@@ -5,6 +5,9 @@ class PyIDEWebComponent extends HTMLElement {
     this.attachShadow({ mode: "open" });
 
     this.storageKey = this.getAttribute("storage-key") || "py-ide";
+    this.showSaveButton = this.getAttribute("show-save-button") !== "false";
+    this.saveInLocalStorage =
+      this.getAttribute("save-in-local-storage") !== "false";
     this.files = [
       {
         id: "main-py",
@@ -359,6 +362,8 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   saveToStorage() {
+    if (!this.saveInLocalStorage) return;
+
     // Debounce storage saves to prevent excessive localStorage writes
     if (this._saveTimeout) {
       clearTimeout(this._saveTimeout);
@@ -390,6 +395,8 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   loadFromStorage() {
+    if (!this.saveInLocalStorage) return;
+
     try {
       const raw = localStorage.getItem(this.storageKey);
       if (!raw) return;
@@ -424,6 +431,10 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   render() {
+    const saveButtonHtml = this.showSaveButton
+      ? '<button class="py-ide-button secondary" id="saveBtn" style="margin-left:auto;">Save</button>'
+      : "";
+
     this.shadowRoot.innerHTML = `
         <style>
           :host {
@@ -728,7 +739,7 @@ class PyIDEWebComponent extends HTMLElement {
               <div class="py-ide-controls">
                 <button class="py-ide-button" id="runBtn" disabled>Run</button>
                 <button class="py-ide-button secondary" id="clearBtn">Clear Output</button>
-                <button class="py-ide-button secondary" id="saveBtn" style="margin-left:auto;">Save</button>
+                ${saveButtonHtml}
               </div>
             </div>
   
@@ -751,7 +762,9 @@ class PyIDEWebComponent extends HTMLElement {
     const clearBtn = this.shadowRoot.getElementById("clearBtn");
     const clearOutputBtn = this.shadowRoot.getElementById("clearOutputBtn");
     const addFileBtn = this.shadowRoot.getElementById("addFileBtn");
-    const saveBtn = this.shadowRoot.getElementById("saveBtn");
+    const saveBtn = this.showSaveButton
+      ? this.shadowRoot.getElementById("saveBtn")
+      : null;
     const divider = this.shadowRoot.getElementById("divider");
     const editorPane = this.shadowRoot.getElementById("editorPane");
     const outputPane = this.shadowRoot.getElementById("outputPane");
@@ -775,9 +788,11 @@ class PyIDEWebComponent extends HTMLElement {
       this.addFile();
     });
 
-    saveBtn.addEventListener("click", () => {
-      this.handleSave();
-    });
+    if (saveBtn) {
+      saveBtn.addEventListener("click", () => {
+        this.handleSave();
+      });
+    }
 
     // Load initial file
     this.loadActiveFile();
@@ -850,7 +865,9 @@ class PyIDEWebComponent extends HTMLElement {
   handleEditorChange() {
     const activeFile = this.getActiveFile();
     if (activeFile && activeFile.content !== this.lastContent) {
-      const saveBtn = this.shadowRoot.getElementById("saveBtn");
+      const saveBtn = this.showSaveButton
+        ? this.shadowRoot.getElementById("saveBtn")
+        : null;
       const checkSvg =
         '<svg viewBox="0 0 16 16" width="14" height="14" style="vertical-align: -2px; margin-left:6px; fill:#4ade80;"><path d="M6.173 13.727L.946 8.5l1.414-1.414 3.813 3.813 7.466-7.466 1.414 1.414z"/></svg>';
       if (saveBtn) {
@@ -909,7 +926,9 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   handleSave() {
-    const saveBtn = this.shadowRoot.getElementById("saveBtn");
+    const saveBtn = this.showSaveButton
+      ? this.shadowRoot.getElementById("saveBtn")
+      : null;
     const checkSvg =
       '<svg viewBox="0 0 16 16" width="14" height="14" style="vertical-align: -2px; margin-left:6px; fill:#4ade80;"><path d="M6.173 13.727L.946 8.5l1.414-1.414 3.813 3.813 7.466-7.466 1.414 1.414z"/></svg>';
     if (saveBtn) {

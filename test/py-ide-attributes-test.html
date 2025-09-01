@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PyIDE Attributes Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .example {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        color: #333;
+        margin-top: 0;
+      }
+      .description {
+        color: #666;
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PyIDE Component - Save Button & localStorage Control</h1>
+
+    <div class="example">
+      <h2>
+        Example 1: Default behavior (Save button visible, localStorage enabled)
+      </h2>
+      <div class="description">
+        This is the default behavior with both save button and localStorage
+        enabled.
+      </div>
+      <py-ide storage-key="default-example">
+        <py-file name="hello.py"
+          >print("Hello from default PyIDE!") print("Save button is visible and
+          localStorage is enabled")</py-file
+        >
+      </py-ide>
+    </div>
+
+    <div class="example">
+      <h2>Example 2: No save button, localStorage disabled</h2>
+      <div class="description">
+        Save button is hidden and localStorage is disabled. Developer would
+        handle saving externally.
+      </div>
+      <py-ide
+        storage-key="no-save-example"
+        show-save-button="false"
+        save-in-local-storage="false"
+      >
+        <py-file name="external_save.py"
+          >print("No save button visible!") print("localStorage is disabled")
+          print("Developer handles saving externally")</py-file
+        >
+      </py-ide>
+    </div>
+
+    <div class="example">
+      <h2>Example 3: Save button visible, localStorage disabled</h2>
+      <div class="description">
+        Save button is visible but localStorage is disabled. The save event can
+        be handled by the developer.
+      </div>
+      <py-ide
+        id="custom-save-ide"
+        storage-key="custom-save-example"
+        save-in-local-storage="false"
+      >
+        <py-file name="custom_save.py"
+          >print("Save button is visible!") print("But localStorage is
+          disabled") print("Developer can listen to 'save' event")</py-file
+        >
+      </py-ide>
+    </div>
+
+    <div class="example">
+      <h2>Example 4: No save button, localStorage enabled</h2>
+      <div class="description">
+        Save button is hidden but localStorage auto-save is still working.
+      </div>
+      <py-ide storage-key="auto-save-example" show-save-button="false">
+        <py-file name="auto_save.py"
+          >print("No save button!") print("But localStorage auto-save works")
+          print("Changes are saved automatically")</py-file
+        >
+      </py-ide>
+    </div>
+
+    <script src="../src/py-ide.js"></script>
+
+    <script>
+      // Demonstrate listening to save events for Example 3
+      const customSaveIde = document.getElementById("custom-save-ide");
+      customSaveIde.addEventListener("save", (event) => {
+        console.log("Custom save event received:", event.detail);
+        alert("Custom save handler called! Check console for details.");
+      });
+
+      // Show current localStorage contents for each example
+      setTimeout(() => {
+        console.log("localStorage contents:");
+        console.log(
+          "default-example:",
+          localStorage.getItem("default-example")
+        );
+        console.log(
+          "no-save-example:",
+          localStorage.getItem("no-save-example")
+        );
+        console.log(
+          "custom-save-example:",
+          localStorage.getItem("custom-save-example")
+        );
+        console.log(
+          "auto-save-example:",
+          localStorage.getItem("auto-save-example")
+        );
+      }, 2000);
+    </script>
+  </body>
+</html>

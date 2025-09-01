@@ -48,13 +48,13 @@ import "essential-components/src/py-ide";
 
 <PyIDEInteractiveDemo />
 
-## Local Storage (storage-key)
+## Configuration Attributes
+
+### storage-key
 
 - **what**: A unique key used to persist the IDE state in `localStorage` (files, open tabs, active file, and last output)
 - **default**: `"py-ide"`
 - **why**: Use different keys to prevent pages/widgets from overwriting each other
-
-### Set a custom key (HTML)
 
 ```html
 <py-ide storage-key="docs-pyide-intro">
@@ -64,12 +64,63 @@ import "essential-components/src/py-ide";
 </py-ide>
 ```
 
-### Set a custom key (React/MDX)
+### show-save-button
 
-```tsx
-import { PyIDE } from "@site/src/components/py-ide";
+- **what**: Controls whether the save button is visible in the IDE controls
+- **default**: `true` (save button is shown)
+- **why**: Allow developers to hide the save button when implementing custom save functionality
 
-<PyIDE storageKey="docs-pyide-intro" />;
+```html
+<!-- Hide save button -->
+<py-ide show-save-button="false">
+  <py-file name="main.py">print("No save button!")</py-file>
+</py-ide>
+
+<!-- Show save button (default) -->
+<py-ide show-save-button="true">
+  <py-file name="main.py">print("Save button visible!")</py-file>
+</py-ide>
+```
+
+### save-in-local-storage
+
+- **what**: Controls whether the IDE automatically saves to localStorage
+- **default**: `true` (localStorage saving is enabled)
+- **why**: Allow developers to disable automatic localStorage saving when implementing custom persistence
+
+```html
+<!-- Disable localStorage, handle saving externally -->
+<py-ide save-in-local-storage="false">
+  <py-file name="main.py">print("No localStorage saving!")</py-file>
+</py-ide>
+
+<!-- Enable localStorage (default) -->
+<py-ide save-in-local-storage="true">
+  <py-file name="main.py">print("Auto-saves to localStorage!")</py-file>
+</py-ide>
+```
+
+### Combining Attributes
+
+```html
+<!-- Custom save implementation: visible save button, no localStorage -->
+<py-ide
+  show-save-button="true"
+  save-in-local-storage="false"
+  id="custom-save-ide"
+>
+  <py-file name="main.py">print("Custom save implementation!")</py-file>
+</py-ide>
+
+<script>
+  document
+    .getElementById("custom-save-ide")
+    .addEventListener("save", (event) => {
+      // Handle save event with custom logic
+      console.log("Files to save:", event.detail.files);
+      // Send to server, save to different storage, etc.
+    });
+</script>
 ```
 
 ### Clear saved state
