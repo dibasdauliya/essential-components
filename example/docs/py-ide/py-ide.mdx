@@ -90,7 +90,7 @@ import "essential-components/src/py-ide";
 - **why**: Allow developers to disable automatic localStorage saving when implementing custom persistence
 
 ```html
-<!-- Disable localStorage, handle saving externally -->
+<!-- Disable localStorage -->
 <py-ide save-in-local-storage="false">
   <py-file name="main.py">print("No localStorage saving!")</py-file>
 </py-ide>
@@ -101,10 +101,9 @@ import "essential-components/src/py-ide";
 </py-ide>
 ```
 
-### Combining Attributes
+### Custom Save Implementation
 
 ```html
-<!-- Custom save implementation: visible save button, no localStorage -->
 <py-ide
   show-save-button="true"
   save-in-local-storage="false"
@@ -117,26 +116,15 @@ import "essential-components/src/py-ide";
   document
     .getElementById("custom-save-ide")
     .addEventListener("save", (event) => {
-      // Handle save event with custom logic
-      console.log("Files to save:", event.detail.files);
-      // Send to server, save to different storage, etc.
+      console.log("Files:", event.detail.files);
     });
 </script>
 ```
 
-## Save & localStorage Demo
-
-The following interactive demo showcases all combinations of save button and localStorage settings:
+## Demo without Save Button and localStorage
 
 <PyIDESaveLocalStorageDemo />
 
-### Clear saved state
-
-```js
-localStorage.removeItem("docs-pyide-intro");
-```
-
-> Tip: If you need truly isolated sessions for demos, give each demo a different `storage-key`.
 
 ## Programmatic API
 
@@ -255,34 +243,4 @@ export default function PyIDEInteractiveDemo() {
     </py-ide>
   );
 }
-```
-
-### React Component Usage
-
-You can also use the React wrapper component with TypeScript support:
-
-```tsx
-import { PyIDE } from "@site/src/components/py-ide";
-
-// Default behavior
-<PyIDE storageKey="my-ide" />
-
-// Custom save implementation
-<PyIDE
-  storageKey="custom-ide"
-  showSaveButton={true}
-  saveInLocalStorage={false}
-  files={[
-    { name: "main.py", content: "print('Custom save demo')" }
-  ]}
-/>
-
-// Embedded demo (no save button, no persistence)
-<PyIDE
-  showSaveButton={false}
-  saveInLocalStorage={false}
-  files={[
-    { name: "demo.py", content: "print('Embedded demo')" }
-  ]}
-/>
 ```
