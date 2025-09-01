@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PyIDE Indent Spaces Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .example {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        color: #333;
+        margin-top: 0;
+      }
+      .description {
+        color: #666;
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PyIDE Component - Indent Spaces Test</h1>
+
+    <div class="example">
+      <h2>Example 1: Default 4 spaces indentation</h2>
+      <div class="description">
+        Default behavior with 4 spaces per indent level.
+      </div>
+      <py-ide storage-key="default-indent">
+        <py-file name="default.py"
+          >def hello(): print("This uses 4 spaces") if True: print("Nested with
+          8 spaces") for i in range(3): print(f"Item {i}")
+        </py-file>
+      </py-ide>
+    </div>
+
+    <div class="example">
+      <h2>Example 2: 2 spaces indentation</h2>
+      <div class="description">
+        Using 2 spaces per indent level (should not show pink highlighting).
+      </div>
+      <py-ide storage-key="two-spaces" indent-spaces="2">
+        <py-file name="two_spaces.py"
+          >def hello(): print("This uses 2 spaces") if True: print("Nested with
+          4 spaces") for i in range(3): print(f"Item {i}")
+        </py-file>
+      </py-ide>
+    </div>
+
+    <div class="example">
+      <h2>Example 3: 8 spaces indentation</h2>
+      <div class="description">Using 8 spaces per indent level.</div>
+      <py-ide storage-key="eight-spaces" indent-spaces="8">
+        <py-file name="eight_spaces.py"
+          >def hello(): print("This uses 8 spaces") if True: print("Nested with
+          16 spaces") for i in range(3): print(f"Item {i}")
+        </py-file>
+      </py-ide>
+    </div>
+
+    <div class="example">
+      <h2>Example 3: Interactive indentation control</h2>
+      <div class="description">
+        Use the dropdown to change indentation on the fly! Try changing from 4
+        to 2 or 8 spaces.
+      </div>
+      <py-ide storage-key="interactive-indent" indent-spaces="4">
+        <py-file name="interactive.py"
+          >def test_function(): print("Try changing the indent setting!") if
+          True: print("Watch how Tab behavior changes") for i in range(3):
+          print(f"Number: {i}")
+        </py-file>
+      </py-ide>
+    </div>
+
+    <div class="example">
+      <h2>Test Instructions</h2>
+      <div class="description">
+        <ol>
+          <li>
+            Wait for all PyIDE components to load (Run buttons should become
+            enabled)
+          </li>
+          <li>
+            Check that none of the code above shows pink highlighting on the
+            first indented line
+          </li>
+          <li>
+            Use the "Indent" dropdown in each editor to change indentation
+            settings
+          </li>
+          <li>
+            Press Tab in each editor - it should use the correct number of
+            spaces
+          </li>
+          <li>Try running the code in each editor to verify functionality</li>
+          <li>
+            Test changing the indent-spaces attribute dynamically using browser
+            dev tools
+          </li>
+        </ol>
+        <p>
+          <strong>Interactive Test:</strong> Change the dropdown values in each
+          editor and see how the Tab behavior changes instantly!
+        </p>
+      </div>
+    </div>
+
+    <script type="module" src="../src/py-ide.js"></script>
+  </body>
+</html>

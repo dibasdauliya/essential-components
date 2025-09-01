@@ -2,10 +2,11 @@
  * EditorManager - Handles CodeMirror initialization and editor operations
  */
 export class EditorManager {
-  constructor(shadowRoot, onInput, onChange) {
+  constructor(shadowRoot, onInput, onChange, indentSpaces = 4) {
     this.shadowRoot = shadowRoot;
     this.onInput = onInput;
     this.onChange = onChange;
+    this.indentSpaces = indentSpaces;
     this.codeMirror = null;
     this.inputTimeout = null;
     this.lastContent = "";
@@ -99,22 +100,50 @@ export class EditorManager {
 
     this.codeMirror = window.CodeMirror(editorContainer, {
       value: initialContent,
-      mode: "python",
+      mode: {
+        name: "python",
+        // Disable strict indentation checking to allow flexible indentation
+        singleLineStringErrors: false,
+      },
       theme: "material-darker",
       lineNumbers: true,
       lineWrapping: true,
       autoCloseBrackets: true,
       matchBrackets: true,
       styleActiveLine: true,
-      indentUnit: 4,
-      tabSize: 4,
+      indentUnit: this.indentSpaces,
+      tabSize: this.indentSpaces,
       indentWithTabs: false,
+      smartIndent: false, // Disable smart indentation to prevent strict checking
       extraKeys: {
         "Ctrl-Space": "autocomplete",
         Tab: (cm) => {
           if (cm.somethingSelected()) {
             cm.indentSelection("add");
           } else {
+            // Auto-detect indentation of current line or use default
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+            const indentMatch = line.match(/^(\s*)/);
+            const currentIndent = indentMatch ? indentMatch[1] : "";
+
+            // If we're at the beginning of a line, try to match previous non-empty line's indentation
+            if (cursor.ch === 0 && cursor.line > 0) {
+              for (let i = cursor.line - 1; i >= 0; i--) {
+                const prevLine = cm.getLine(i);
+                if (prevLine.trim().length > 0) {
+                  const prevIndentMatch = prevLine.match(/^(\s*)/);
+                  const prevIndent = prevIndentMatch ? prevIndentMatch[1] : "";
+                  if (prevIndent.length > 0) {
+                    cm.replaceSelection(prevIndent);
+                    return;
+                  }
+                  break;
+                }
+              }
+            }
+
+            // Default to spaces based on indentUnit
             cm.replaceSelection(
               Array(cm.getOption("indentUnit") + 1).join(" ")
             );
@@ -229,6 +258,14 @@ export class EditorManager {
   refresh() {
     if (this.codeMirror) {
       this.codeMirror.refresh();
+    }
+  }
+
+  updateIndentSpaces(indentSpaces) {
+    this.indentSpaces = indentSpaces;
+    if (this.codeMirror) {
+      this.codeMirror.setOption("indentUnit", indentSpaces);
+      this.codeMirror.setOption("tabSize", indentSpaces);
     }
   }
 

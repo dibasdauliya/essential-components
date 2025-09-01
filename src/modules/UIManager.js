@@ -219,6 +219,34 @@ export class UIManager {
           .py-ide-button.secondary:hover {
             background: #5a5a5c;
           }
+
+          .py-ide-indent-control {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+          }
+
+          .py-ide-select {
+            background: #3c3c3c;
+            color: #cccccc;
+            border: 1px solid #5a5a5c;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            cursor: pointer;
+          }
+
+          .py-ide-select:hover {
+            background: #4a4a4a;
+            border-color: #6a6a6c;
+          }
+
+          .py-ide-select:focus {
+            outline: none;
+            border-color: #007acc;
+            box-shadow: 0 0 0 1px #007acc;
+          }
   
           .py-ide-output-section {
             flex: 1 1 auto;
@@ -322,7 +350,14 @@ export class UIManager {
   
               <div class="py-ide-controls">
                 <button class="py-ide-button" id="runBtn" disabled>Run</button>
-                <button class="py-ide-button secondary" id="clearBtn">Clear Output</button>
+                <div class="py-ide-indent-control">
+                  <label for="indentSelect" style="font-size: 12px; color: #cccccc; margin-right: 5px;">Indent:</label>
+                  <select id="indentSelect" class="py-ide-select">
+                    <option value="2">2 spaces</option>
+                    <option value="4" selected>4 spaces</option>
+                    <option value="8">8 spaces</option>
+                  </select>
+                </div>
                 ${saveButtonHtml}
               </div>
             </div>
@@ -474,6 +509,29 @@ export class UIManager {
   // Clear output
   clearOutput(defaultText = "Ready to run Python code.") {
     this.updateOutput(defaultText);
+  }
+
+  // Setup indent selector
+  setupIndentSelector(currentIndentSpaces, onIndentChange) {
+    const indentSelect = this.shadowRoot.getElementById("indentSelect");
+    if (!indentSelect) return;
+
+    // Set current value
+    indentSelect.value = currentIndentSpaces.toString();
+
+    // Add event listener
+    indentSelect.addEventListener("change", (e) => {
+      const newIndentSpaces = parseInt(e.target.value);
+      onIndentChange(newIndentSpaces);
+    });
+  }
+
+  // Update indent selector value
+  updateIndentSelector(indentSpaces) {
+    const indentSelect = this.shadowRoot.getElementById("indentSelect");
+    if (indentSelect) {
+      indentSelect.value = indentSpaces.toString();
+    }
   }
 
   // Clean up timeouts

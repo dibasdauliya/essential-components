@@ -10,7 +10,12 @@ import { UIManager } from "./modules/UIManager.js";
 
 class PyIDEWebComponent extends HTMLElement {
   static get observedAttributes() {
-    return ["storage-key", "show-save-button", "save-in-local-storage"];
+    return [
+      "storage-key",
+      "show-save-button",
+      "save-in-local-storage",
+      "indent-spaces",
+    ];
   }
 
   constructor() {
@@ -22,6 +27,7 @@ class PyIDEWebComponent extends HTMLElement {
     this.storageKey = "py-ide";
     this.showSaveButton = true;
     this.saveInLocalStorage = true;
+    this.indentSpaces = 4;
 
     // Flags for lifecycle coordination (React/SSR-safe)
     this._loadedFromStorage = false;
@@ -43,6 +49,7 @@ class PyIDEWebComponent extends HTMLElement {
     this.showSaveButton = this.getAttribute("show-save-button") !== "false";
     this.saveInLocalStorage =
       this.getAttribute("save-in-local-storage") !== "false";
+    this.indentSpaces = parseInt(this.getAttribute("indent-spaces")) || 4;
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -79,6 +86,15 @@ class PyIDEWebComponent extends HTMLElement {
           );
         }
         break;
+      case "indent-spaces":
+        this.indentSpaces = parseInt(newValue) || 4;
+        if (this.editorManager) {
+          this.editorManager.updateIndentSpaces(this.indentSpaces);
+        }
+        if (this.uiManager) {
+          this.uiManager.updateIndentSelector(this.indentSpaces);
+        }
+        break;
     }
   }
 
@@ -99,7 +115,18 @@ class PyIDEWebComponent extends HTMLElement {
 
     // Initialize PyodideRunner with callbacks
     this.pyodideRunner = new PyodideRunner(
-      (text, type) => this.uiManager.updateStatus(text, type),
+      (text, type) => {
+        this.uiManager.updateStatus(text, type);
+        // Enable run button when Pyodide is ready
+        if (type === "ready") {
+          this.uiManager.updateButtonState(
+            "runBtn",
+            false,
+            "Running...",
+            "Run"
+          );
+        }
+      },
       (content) => this.uiManager.updateOutput(content)
     );
 
@@ -107,7 +134,8 @@ class PyIDEWebComponent extends HTMLElement {
     this.editorManager = new EditorManager(
       this.shadowRoot,
       (content) => this.handleEditorInput(content),
-      (content) => this.handleEditorChange(content)
+      (content) => this.handleEditorChange(content),
+      this.indentSpaces
     );
 
     // Render UI and bind events
@@ -128,7 +156,6 @@ class PyIDEWebComponent extends HTMLElement {
 
   bindEvents() {
     const runBtn = this.shadowRoot.getElementById("runBtn");
-    const clearBtn = this.shadowRoot.getElementById("clearBtn");
     const clearOutputBtn = this.shadowRoot.getElementById("clearOutputBtn");
     const addFileBtn = this.shadowRoot.getElementById("addFileBtn");
     const saveBtn = this.showSaveButton
@@ -136,7 +163,6 @@ class PyIDEWebComponent extends HTMLElement {
       : null;
 
     runBtn.addEventListener("click", () => this.handleRun());
-    clearBtn.addEventListener("click", () => this.clearOutput());
     clearOutputBtn.addEventListener("click", () => this.clearOutput());
     addFileBtn.addEventListener("click", () => this.fileManager.addFile());
 
@@ -146,6 +172,11 @@ class PyIDEWebComponent extends HTMLElement {
 
     // Setup resizer
     this.uiManager.setupResizer();
+
+    // Setup indent selector
+    this.uiManager.setupIndentSelector(this.indentSpaces, (newIndentSpaces) => {
+      this.handleIndentChange(newIndentSpaces);
+    });
   }
 
   bindSaveButton(saveBtn) {
@@ -252,6 +283,28 @@ class PyIDEWebComponent extends HTMLElement {
         true
       );
     }, 150);
+  }
+
+  handleIndentChange(newIndentSpaces) {
+    this.indentSpaces = newIndentSpaces;
+
+    // Update the editor
+    if (this.editorManager) {
+      this.editorManager.updateIndentSpaces(newIndentSpaces);
+    }
+
+    // Update the attribute (this will trigger attributeChangedCallback but won't cause infinite loop due to the check)
+    this.setAttribute("indent-spaces", newIndentSpaces.toString());
+
+    // Save to storage if needed
+    this.saveToStorage();
+
+    // Dispatch custom event
+    this.dispatchEvent(
+      new CustomEvent("indent-change", {
+        detail: { indentSpaces: newIndentSpaces },
+      })
+    );
   }
 
   saveToStorage() {
