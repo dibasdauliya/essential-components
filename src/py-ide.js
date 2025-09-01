@@ -29,6 +29,12 @@ class PyIDEWebComponent extends HTMLElement {
     this.inputTimeout = null;
     this.lastContent = "";
 
+    // Memory leak prevention
+    this._tabContainerEventListener = null;
+    this._activeTimeouts = new Set();
+    this._resizeHandler = null;
+    this._saveTimeout = null;
+
     this.init();
   }
   // Read initial files passed via light DOM children
@@ -184,11 +190,18 @@ class PyIDEWebComponent extends HTMLElement {
 
     // ensure proper layout after mount
     requestAnimationFrame(() => this.codeMirror && this.codeMirror.refresh());
-    setTimeout(() => this.codeMirror && this.codeMirror.refresh(), 100);
-    window.addEventListener(
-      "resize",
-      () => this.codeMirror && this.codeMirror.refresh()
-    );
+    const refreshTimeout = setTimeout(() => {
+      this._activeTimeouts.delete(refreshTimeout);
+      this.codeMirror && this.codeMirror.refresh();
+    }, 100);
+    this._activeTimeouts.add(refreshTimeout);
+
+    // Clean up previous resize handler if it exists
+    if (this._resizeHandler) {
+      window.removeEventListener("resize", this._resizeHandler);
+    }
+    this._resizeHandler = () => this.codeMirror && this.codeMirror.refresh();
+    window.addEventListener("resize", this._resizeHandler);
   }
 
   init() {
@@ -263,15 +276,40 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   disconnectedCallback() {
+    // Clean up timeouts
     if (this.inputTimeout) {
       clearTimeout(this.inputTimeout);
     }
+    if (this._saveTimeout) {
+      clearTimeout(this._saveTimeout);
+    }
+    this._activeTimeouts.forEach((timeout) => clearTimeout(timeout));
+    this._activeTimeouts.clear();
+
+    // Clean up CodeMirror
     if (this.codeMirror) {
       this.codeMirror.toTextArea();
+      this.codeMirror = null;
     }
+
+    // Clean up observers
     if (this._childrenObserver) {
       this._childrenObserver.disconnect();
       this._childrenObserver = null;
+    }
+
+    // Clean up event listeners
+    if (this._resizeHandler) {
+      window.removeEventListener("resize", this._resizeHandler);
+      this._resizeHandler = null;
+    }
+
+    if (this._tabContainerEventListener) {
+      const container = this.shadowRoot?.getElementById("fileTabs");
+      if (container) {
+        container.removeEventListener("click", this._tabContainerEventListener);
+      }
+      this._tabContainerEventListener = null;
     }
   }
 
@@ -321,23 +359,34 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   saveToStorage() {
-    try {
-      const payload = {
-        files: this.files.map((f) => ({
-          id: f.id,
-          name: f.name,
-          content: f.content,
-          lastModified: f.lastModified,
-        })),
-        activeFileId: this.activeFileId,
-        openFiles: this.openFiles,
-        lastOutput: this.lastOutput,
-        savedAt: Date.now(),
-      };
-      localStorage.setItem(this.storageKey, JSON.stringify(payload));
-    } catch (err) {
-      console.warn("PyIDE: Failed to save to localStorage:", err);
+    // Debounce storage saves to prevent excessive localStorage writes
+    if (this._saveTimeout) {
+      clearTimeout(this._saveTimeout);
+      this._activeTimeouts.delete(this._saveTimeout);
     }
+
+    this._saveTimeout = setTimeout(() => {
+      this._activeTimeouts.delete(this._saveTimeout);
+      try {
+        const payload = {
+          files: this.files.map((f) => ({
+            id: f.id,
+            name: f.name,
+            content: f.content,
+            lastModified: f.lastModified,
+          })),
+          activeFileId: this.activeFileId,
+          openFiles: this.openFiles,
+          lastOutput: this.lastOutput,
+          savedAt: Date.now(),
+        };
+        localStorage.setItem(this.storageKey, JSON.stringify(payload));
+      } catch (err) {
+        console.warn("PyIDE: Failed to save to localStorage:", err);
+      }
+    }, 100);
+
+    this._activeTimeouts.add(this._saveTimeout);
   }
 
   loadFromStorage() {
@@ -782,6 +831,7 @@ class PyIDEWebComponent extends HTMLElement {
     // Debounced input event
     if (this.inputTimeout) {
       clearTimeout(this.inputTimeout);
+      this._activeTimeouts.delete(this.inputTimeout);
     }
     this.inputTimeout = setTimeout(() => {
       this.dispatchEvent(
@@ -791,7 +841,9 @@ class PyIDEWebComponent extends HTMLElement {
       );
       // Auto-save on input debounce
       this.saveToStorage();
+      this._activeTimeouts.delete(this.inputTimeout);
     }, 300);
+    this._activeTimeouts.add(this.inputTimeout);
   }
 
   // Handle editor change (when user tabs away)
@@ -819,18 +871,22 @@ class PyIDEWebComponent extends HTMLElement {
         })
       );
       this.saveToStorage();
-      setTimeout(() => {
+      const saveTimeout1 = setTimeout(() => {
+        this._activeTimeouts.delete(saveTimeout1);
         if (saveBtn) {
           saveBtn.innerHTML = `Saved ${checkSvg}`;
-          setTimeout(() => {
+          const saveTimeout2 = setTimeout(() => {
+            this._activeTimeouts.delete(saveTimeout2);
             const btn = this.shadowRoot?.getElementById("saveBtn");
             if (btn) {
               btn.textContent = btn.dataset.originalText || "Save";
               btn.disabled = false;
             }
           }, 1200);
+          this._activeTimeouts.add(saveTimeout2);
         }
       }, 150);
+      this._activeTimeouts.add(saveTimeout1);
     }
   }
 
@@ -875,18 +931,22 @@ class PyIDEWebComponent extends HTMLElement {
       })
     );
 
-    setTimeout(() => {
+    const handleSaveTimeout1 = setTimeout(() => {
+      this._activeTimeouts.delete(handleSaveTimeout1);
       if (saveBtn) {
         saveBtn.innerHTML = `Saved ${checkSvg}`;
-        setTimeout(() => {
+        const handleSaveTimeout2 = setTimeout(() => {
+          this._activeTimeouts.delete(handleSaveTimeout2);
           const btn = this.shadowRoot?.getElementById("saveBtn");
           if (btn) {
             btn.textContent = btn.dataset.originalText || "Save";
             btn.disabled = false;
           }
         }, 1200);
+        this._activeTimeouts.add(handleSaveTimeout2);
       }
     }, 150);
+    this._activeTimeouts.add(handleSaveTimeout1);
   }
 
   async loadPyodide() {
@@ -1228,6 +1288,11 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   selectFile(fileId) {
+    // Skip if already the active file
+    if (this.activeFileId === fileId) {
+      return;
+    }
+
     if (!this.openFiles.includes(fileId)) {
       this.openFiles.push(fileId);
     }
@@ -1265,13 +1330,29 @@ class PyIDEWebComponent extends HTMLElement {
     const activeFile = this.getActiveFile();
 
     if (activeFile) {
-      // update CodeMirror if available
+      // Update CodeMirror if available and content has changed
       if (this.codeMirror) {
-        this.codeMirror.setValue(activeFile.content);
+        const currentValue = this.codeMirror.getValue();
+        if (currentValue !== activeFile.content) {
+          // Temporarily disable change event to prevent unnecessary operations
+          const originalChangeHandler = this.codeMirror.getOption("onChange");
+          this.codeMirror.off("change");
+          this.codeMirror.setValue(activeFile.content);
+          // Re-enable change event
+          this.codeMirror.on("change", (instance) => {
+            this.handleEditorInput(instance.getValue());
+          });
+        }
+        // Only refresh if actually needed
+        requestAnimationFrame(() => {
+          if (this.codeMirror) {
+            this.codeMirror.refresh();
+          }
+        });
       } else {
         // fallback to textarea editor
         const editor = this.shadowRoot.getElementById("editor");
-        if (editor) {
+        if (editor && editor.value !== activeFile.content) {
           editor.value = activeFile.content;
         }
       }
@@ -1300,8 +1381,13 @@ class PyIDEWebComponent extends HTMLElement {
       )
       .join("");
 
-    // bind tab events
-    container.addEventListener("click", (e) => {
+    // Remove previous event listener to prevent accumulation
+    if (this._tabContainerEventListener) {
+      container.removeEventListener("click", this._tabContainerEventListener);
+    }
+
+    // Create and store new event listener
+    this._tabContainerEventListener = (e) => {
       const fileId = e.target.closest(".py-ide-file-tab")?.dataset.fileId;
       const closeId = e.target.dataset.close;
 
@@ -1311,7 +1397,10 @@ class PyIDEWebComponent extends HTMLElement {
       } else if (fileId) {
         this.selectFile(fileId);
       }
-    });
+    };
+
+    // Bind the new event listener
+    container.addEventListener("click", this._tabContainerEventListener);
   }
 
   // UI update methods
@@ -1345,13 +1434,15 @@ class PyIDEWebComponent extends HTMLElement {
       runBtn.disabled = true;
     } else {
       runBtn.innerHTML = `Ran ${checkSvg}`;
-      setTimeout(() => {
+      const runTimeout = setTimeout(() => {
+        this._activeTimeouts.delete(runTimeout);
         const btn = this.shadowRoot?.getElementById("runBtn");
         if (btn) {
           btn.textContent = btn.dataset.originalText || "Run";
           btn.disabled = !this.pyodideReady;
         }
       }, 1200);
+      this._activeTimeouts.add(runTimeout);
     }
   }
 
