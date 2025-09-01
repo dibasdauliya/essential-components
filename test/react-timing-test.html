@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Timing Test - PyIDE</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 12px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>React Timing Test - PyIDE Component</h1>
+    <p>
+      This test simulates how React creates and sets attributes on PyIDE
+      components.
+    </p>
+
+    <div class="test-section">
+      <h2>Test 1: Immediate Attribute Setting</h2>
+      <div id="test1-status" class="status">Testing...</div>
+      <div id="test1-container"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>Test 2: Delayed Attribute Setting (React-like)</h2>
+      <div id="test2-status" class="status">Testing...</div>
+      <div id="test2-container"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>Test 3: localStorage Check</h2>
+      <div id="test3-status" class="status">Testing...</div>
+      <button onclick="checkLocalStorage()">Check localStorage</button>
+      <button onclick="clearAllStorage()">Clear All</button>
+    </div>
+
+    <script src="../src/py-ide.js"></script>
+
+    <script>
+      function updateStatus(testNum, message) {
+        document.getElementById(`test${testNum}-status`).textContent = message;
+      }
+
+      function checkSaveButton(element, testNum, expected) {
+        const saveBtn = element.shadowRoot?.querySelector("#saveBtn");
+        const exists = saveBtn !== null;
+        const message = `Save button exists: ${exists}, Expected: ${expected}, Match: ${
+          exists === expected
+        }`;
+        updateStatus(testNum, message);
+        return exists === expected;
+      }
+
+      function checkLocalStorageEnabled(element, testNum, expected) {
+        const enabled = element.saveInLocalStorage;
+        const message = `localStorage enabled: ${enabled}, Expected: ${expected}, Match: ${
+          enabled === expected
+        }`;
+        updateStatus(
+          testNum,
+          message +
+            "\n" +
+            document.getElementById(`test${testNum}-status`).textContent
+        );
+        return enabled === expected;
+      }
+
+      // Test 1: Create element and set attributes immediately (normal HTML)
+      function test1() {
+        const container = document.getElementById("test1-container");
+        const element = document.createElement("py-ide");
+        element.setAttribute("storage-key", "test1-immediate");
+        element.setAttribute("show-save-button", "true");
+        element.setAttribute("save-in-local-storage", "true");
+
+        container.appendChild(element);
+
+        setTimeout(() => {
+          const saveOk = checkSaveButton(element, 1, true);
+          const lsOk = checkLocalStorageEnabled(element, 1, true);
+          updateStatus(1, `Test 1 - Immediate: Save=${saveOk}, LS=${lsOk}`);
+        }, 1000);
+      }
+
+      // Test 2: Create element first, then set attributes later (React-like)
+      function test2() {
+        const container = document.getElementById("test2-container");
+        const element = document.createElement("py-ide");
+        container.appendChild(element);
+
+        // Simulate React setting attributes after element creation
+        setTimeout(() => {
+          element.setAttribute("storage-key", "test2-delayed");
+          element.setAttribute("show-save-button", "false");
+          element.setAttribute("save-in-local-storage", "false");
+
+          // Check results after attributes are set
+          setTimeout(() => {
+            const saveOk = checkSaveButton(element, 2, false);
+            const lsOk = checkLocalStorageEnabled(element, 2, false);
+            updateStatus(2, `Test 2 - Delayed: Save=${saveOk}, LS=${lsOk}`);
+          }, 500);
+        }, 100);
+      }
+
+      function checkLocalStorage() {
+        const keys = ["test1-immediate", "test2-delayed"];
+        const results = keys.map((key) => {
+          const data = localStorage.getItem(key);
+          return `${key}: ${data ? "HAS DATA" : "NO DATA"}`;
+        });
+        updateStatus(3, "localStorage Check:\n" + results.join("\n"));
+      }
+
+      function clearAllStorage() {
+        localStorage.removeItem("test1-immediate");
+        localStorage.removeItem("test2-delayed");
+        updateStatus(3, "All localStorage cleared");
+      }
+
+      // Run tests
+      test1();
+      test2();
+    </script>
+  </body>
+</html>

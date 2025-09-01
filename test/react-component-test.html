@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React PyIDE Component Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .example {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        color: #333;
+        margin-top: 0;
+      }
+      .description {
+        color: #666;
+        margin-bottom: 15px;
+      }
+    </style>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <h1>React PyIDE Component Test</h1>
+
+    <div id="react-root"></div>
+
+    <script src="../src/py-ide.js"></script>
+
+    <script type="text/babel">
+      // Simulate the PyIDE React component
+      function PyIDEComponent({
+        storageKey,
+        showSaveButton,
+        saveInLocalStorage,
+        files = [],
+      }) {
+        const [saveEvents, setSaveEvents] = React.useState([]);
+        const ideRef = React.useRef(null);
+
+        React.useEffect(() => {
+          const element = ideRef.current;
+          if (!element) return;
+
+          const handleSave = (event) => {
+            setSaveEvents((prev) => [
+              ...prev,
+              {
+                timestamp: new Date().toLocaleTimeString(),
+                files: event.detail.files,
+                output: event.detail.output,
+              },
+            ]);
+          };
+
+          element.addEventListener("save", handleSave);
+          return () => element.removeEventListener("save", handleSave);
+        }, []);
+
+        const defaultFiles =
+          files.length > 0
+            ? files
+            : [
+                {
+                  name: "main.py",
+                  content: "print('Hello from React PyIDE!')",
+                },
+              ];
+
+        const attributes = { "storage-key": storageKey };
+        if (showSaveButton !== undefined) {
+          attributes["show-save-button"] = showSaveButton.toString();
+        }
+        if (saveInLocalStorage !== undefined) {
+          attributes["save-in-local-storage"] = saveInLocalStorage.toString();
+        }
+
+        return React.createElement(
+          "div",
+          { className: "example" },
+          React.createElement(
+            "h2",
+            {},
+            `PyIDE - Save: ${showSaveButton !== false}, localStorage: ${
+              saveInLocalStorage !== false
+            }`
+          ),
+          React.createElement(
+            "div",
+            { className: "description" },
+            `Storage key: ${storageKey}, Save events: ${saveEvents.length}`
+          ),
+          React.createElement(
+            "py-ide",
+            { ref: ideRef, ...attributes },
+            ...defaultFiles.map((file, idx) =>
+              React.createElement("script", {
+                key: idx,
+                type: "text/plain",
+                "data-filename": file.name,
+                dangerouslySetInnerHTML: { __html: file.content },
+              })
+            )
+          ),
+          saveEvents.length > 0 &&
+            React.createElement(
+              "div",
+              {
+                style: {
+                  marginTop: "10px",
+                  padding: "10px",
+                  background: "#f0f0f0",
+                  borderRadius: "4px",
+                },
+              },
+              React.createElement("strong", {}, "Save Events:"),
+              React.createElement(
+                "ul",
+                {},
+                ...saveEvents.map((event, idx) =>
+                  React.createElement(
+                    "li",
+                    { key: idx },
+                    `${event.timestamp}: ${event.files.length} files saved`
+                  )
+                )
+              )
+            )
+        );
+      }
+
+      function App() {
+        return React.createElement(
+          "div",
+          {},
+          React.createElement(PyIDEComponent, {
+            storageKey: "react-test-default",
+            showSaveButton: true,
+            saveInLocalStorage: true,
+          }),
+          React.createElement(PyIDEComponent, {
+            storageKey: "react-test-custom",
+            showSaveButton: true,
+            saveInLocalStorage: false,
+            files: [
+              {
+                name: "custom.py",
+                content:
+                  "print('Custom save implementation!')\n# Click save to test",
+              },
+            ],
+          }),
+          React.createElement(PyIDEComponent, {
+            storageKey: "react-test-minimal",
+            showSaveButton: false,
+            saveInLocalStorage: false,
+            files: [
+              {
+                name: "minimal.py",
+                content:
+                  "print('Minimal setup')\n# No save button, no localStorage",
+              },
+            ],
+          })
+        );
+      }
+
+      ReactDOM.render(
+        React.createElement(App),
+        document.getElementById("react-root")
+      );
+    </script>
+  </body>
+</html>

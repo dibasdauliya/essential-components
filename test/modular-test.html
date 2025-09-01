@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PyIDE Modular Test</title>
+    <style>
+      body {
+        margin: 20px;
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      py-ide {
+        width: 100%;
+        height: 500px;
+      }
+      .info {
+        background: #e3f2fd;
+        padding: 15px;
+        border-left: 4px solid #2196f3;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>PyIDE Modular Implementation Test</h1>
+
+      <div class="info">
+        <strong>Testing the new modular PyIDE structure:</strong>
+        <ul>
+          <li>EditorManager - Handles CodeMirror and editor operations</li>
+          <li>FileManager - Manages files, tabs, and switching</li>
+          <li>PyodideRunner - Executes Python code and manages Pyodide</li>
+          <li>StorageManager - Handles localStorage persistence</li>
+          <li>UIManager - Manages UI rendering and styling</li>
+        </ul>
+      </div>
+
+      <div class="test-section">
+        <h2>Basic Test</h2>
+        <py-ide storage-key="modular-test-1" show-save-button="true">
+          <py-file name="hello.py">
+            print("Hello from the modular PyIDE!") print("This demonstrates the
+            new modular architecture.") # Test some basic functionality import
+            math print(f"π ≈ {math.pi:.4f}") # Create a simple list numbers =
+            [1, 2, 3, 4, 5] squares = [x**2 for x in numbers] print(f"Squares:
+            {squares}")
+          </py-file>
+          <py-file name="utils.py">
+            def fibonacci(n): """Generate fibonacci sequence up to n terms."""
+            if n <= 0: return [] elif n == 1: return [0] elif n == 2: return [0,
+            1] fib = [0, 1] for i in range(2, n): fib.append(fib[i-1] +
+            fib[i-2]) return fib def is_prime(num): """Check if a number is
+            prime.""" if num < 2: return False for i in range(2, int(num**0.5) +
+            1): if num % i == 0: return False return True # Test the functions
+            print("Fibonacci sequence (10 terms):", fibonacci(10)) print("Prime
+            numbers up to 20:", [i for i in range(2, 21) if is_prime(i)])
+          </py-file>
+        </py-ide>
+      </div>
+
+      <div class="test-section">
+        <h2>Test with Save Button Disabled</h2>
+        <py-ide
+          storage-key="modular-test-2"
+          show-save-button="false"
+          save-in-local-storage="false"
+        >
+          <py-file name="test.py">
+            # This instance has save button disabled # and localStorage disabled
+            print("Testing modular PyIDE without save functionality")
+            print("This should work the same but without persistence") # Simple
+            calculation result = sum(range(1, 101)) print(f"Sum of 1 to 100:
+            {result}")
+          </py-file>
+        </py-ide>
+      </div>
+    </div>
+
+    <script type="module" src="../src/py-ide-modular.js"></script>
+
+    <script>
+      // Test event listeners
+      document.querySelectorAll("py-ide").forEach((ide, index) => {
+        ide.addEventListener("input", (e) => {
+          console.log(`IDE ${index + 1} input:`, e.detail);
+        });
+
+        ide.addEventListener("change", (e) => {
+          console.log(`IDE ${index + 1} change:`, e.detail);
+        });
+
+        ide.addEventListener("save", (e) => {
+          console.log(`IDE ${index + 1} save:`, e.detail);
+        });
+
+        ide.addEventListener("submit", (e) => {
+          console.log(`IDE ${index + 1} submit:`, e.detail);
+        });
+      });
+
+      // Test programmatic API after components are loaded
+      setTimeout(() => {
+        const firstIde = document.querySelector("py-ide");
+        if (firstIde) {
+          console.log("Current code:", firstIde.code);
+          console.log("Current output:", firstIde.output);
+        }
+      }, 2000);
+    </script>
+  </body>
+</html>

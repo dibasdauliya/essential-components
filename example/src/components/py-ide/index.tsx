@@ -9,6 +9,8 @@ declare global {
         HTMLElement
       > & {
         "storage-key"?: string;
+        "show-save-button"?: string;
+        "save-in-local-storage"?: string;
       };
     }
   }
@@ -19,9 +21,13 @@ type PyIDEFile = { name: string; content: string };
 export function PyIDE({
   storageKey,
   files,
+  showSaveButton,
+  saveInLocalStorage,
 }: {
   storageKey?: string;
   files?: PyIDEFile[];
+  showSaveButton?: boolean;
+  saveInLocalStorage?: boolean;
 }) {
   console.log({ filesComp: files });
   return (
@@ -53,11 +59,15 @@ export function PyIDE({
           })
         );
 
-        return React.createElement(
-          "py-ide",
-          { "storage-key": storageKey },
-          ...scriptChildren
-        );
+        const attributes: any = { "storage-key": storageKey };
+        if (showSaveButton !== undefined) {
+          attributes["show-save-button"] = showSaveButton.toString();
+        }
+        if (saveInLocalStorage !== undefined) {
+          attributes["save-in-local-storage"] = saveInLocalStorage.toString();
+        }
+
+        return React.createElement("py-ide", attributes, ...scriptChildren);
       }}
     </BrowserOnly>
   );

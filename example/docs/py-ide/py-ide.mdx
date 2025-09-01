@@ -1,4 +1,5 @@
 import { PyIDEInteractiveDemo } from "@site/src/components/py-ide/InteractiveDemo";
+import { PyIDESaveLocalStorageDemo } from "@site/src/components/py-ide/SaveLocalStorageDemo";
 
 # Py IDE
 
@@ -123,6 +124,12 @@ import "essential-components/src/py-ide";
 </script>
 ```
 
+## Save & localStorage Demo
+
+The following interactive demo showcases all combinations of save button and localStorage settings:
+
+<PyIDESaveLocalStorageDemo />
+
 ### Clear saved state
 
 ```js
@@ -219,6 +226,7 @@ export default function PyIDEInteractiveDemo() {
     const onSave = (e: Event) => {
       const customEvent = e as CustomEvent;
       console.log("SAVE", customEvent.detail);
+      // Handle custom save logic here
     };
 
     el.addEventListener("input", onInput);
@@ -235,11 +243,46 @@ export default function PyIDEInteractiveDemo() {
   }, []);
 
   return (
-    <py-ide ref={pyIdeRef} storage-key="docs-pyide-react">
+    <py-ide
+      ref={pyIdeRef}
+      storage-key="docs-pyide-react"
+      show-save-button="true"
+      save-in-local-storage="false"
+    >
       <script type="text/plain" data-filename="main.py">
-        {"print('React events demo')"}
+        {"print('React events demo with custom save')"}
       </script>
     </py-ide>
   );
 }
+```
+
+### React Component Usage
+
+You can also use the React wrapper component with TypeScript support:
+
+```tsx
+import { PyIDE } from "@site/src/components/py-ide";
+
+// Default behavior
+<PyIDE storageKey="my-ide" />
+
+// Custom save implementation
+<PyIDE
+  storageKey="custom-ide"
+  showSaveButton={true}
+  saveInLocalStorage={false}
+  files={[
+    { name: "main.py", content: "print('Custom save demo')" }
+  ]}
+/>
+
+// Embedded demo (no save button, no persistence)
+<PyIDE
+  showSaveButton={false}
+  saveInLocalStorage={false}
+  files={[
+    { name: "demo.py", content: "print('Embedded demo')" }
+  ]}
+/>
 ```

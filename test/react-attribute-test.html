@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Attribute Test - PyIDE</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .controls {
+        margin: 10px 0;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        padding: 8px 16px;
+        background: #007acc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #005a9e;
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 14px;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>React Attribute Test - PyIDE Component</h1>
+    <p>
+      This test verifies that dynamic attribute changes work correctly with
+      React.
+    </p>
+
+    <div class="test-section">
+      <h2>Test: Dynamic Attribute Changes</h2>
+      <div class="controls">
+        <button onclick="toggleSaveButton()">Toggle Save Button</button>
+        <button onclick="toggleLocalStorage()">Toggle localStorage</button>
+        <button onclick="checkCurrentState()">Check Current State</button>
+      </div>
+
+      <div id="status" class="status">Ready to test...</div>
+
+      <py-ide
+        id="test-ide"
+        storage-key="attribute-test"
+        show-save-button="true"
+        save-in-local-storage="true"
+      >
+        <py-file name="test.py"
+          >print("Testing attribute changes!") print("Save button should be
+          visible initially") print("localStorage should be enabled initially")
+          # Try: # 1. Toggle save button - it should appear/disappear # 2.
+          Toggle localStorage - check the status display # 3. Make changes and
+          see if they persist (when localStorage is on)</py-file
+        >
+      </py-ide>
+    </div>
+
+    <div class="test-section">
+      <h2>localStorage Monitor</h2>
+      <div class="controls">
+        <button onclick="showStorage()">Show localStorage</button>
+        <button onclick="clearStorage()">Clear localStorage</button>
+      </div>
+      <pre
+        id="storage-display"
+        style="background: #f8f8f8; padding: 10px; border-radius: 4px"
+      >
+Click "Show localStorage" to see contents</pre
+      >
+    </div>
+
+    <script src="../src/py-ide.js"></script>
+
+    <script>
+      const testIde = document.getElementById("test-ide");
+      const statusDiv = document.getElementById("status");
+      const storageDisplay = document.getElementById("storage-display");
+
+      function updateStatus(message, isError = false) {
+        statusDiv.textContent = message;
+        statusDiv.className = isError ? "status error" : "status success";
+      }
+
+      function toggleSaveButton() {
+        const currentValue = testIde.getAttribute("show-save-button");
+        const newValue = currentValue === "false" ? "true" : "false";
+        testIde.setAttribute("show-save-button", newValue);
+
+        updateStatus(`Save button toggled to: ${newValue}`);
+
+        // Check if save button exists after a short delay
+        setTimeout(() => {
+          const saveBtn = testIde.shadowRoot.querySelector("#saveBtn");
+          const exists = saveBtn !== null;
+          const expected = newValue === "true";
+
+          if (exists === expected) {
+            updateStatus(
+              `✅ Save button toggle successful! Visible: ${exists}`
+            );
+          } else {
+            updateStatus(
+              `❌ Save button toggle failed! Expected: ${expected}, Got: ${exists}`,
+              true
+            );
+          }
+        }, 100);
+      }
+
+      function toggleLocalStorage() {
+        const currentValue = testIde.getAttribute("save-in-local-storage");
+        const newValue = currentValue === "false" ? "true" : "false";
+        testIde.setAttribute("save-in-local-storage", newValue);
+
+        updateStatus(`localStorage toggled to: ${newValue}`);
+      }
+
+      function checkCurrentState() {
+        const showSave = testIde.getAttribute("show-save-button");
+        const saveLS = testIde.getAttribute("save-in-local-storage");
+        const saveBtn = testIde.shadowRoot.querySelector("#saveBtn");
+
+        const status = `
+Current State:
+- show-save-button: ${showSave}
+- save-in-local-storage: ${saveLS}  
+- Save button in DOM: ${saveBtn ? "YES" : "NO"}
+- Component showSaveButton: ${testIde.showSaveButton}
+- Component saveInLocalStorage: ${testIde.saveInLocalStorage}`;
+
+        updateStatus(status);
+      }
+
+      function showStorage() {
+        const key = "attribute-test";
+        const data = localStorage.getItem(key);
+        if (data) {
+          storageDisplay.textContent = `localStorage['${key}']:\n${JSON.stringify(
+            JSON.parse(data),
+            null,
+            2
+          )}`;
+        } else {
+          storageDisplay.textContent = `No data found in localStorage for key: ${key}`;
+        }
+      }
+
+      function clearStorage() {
+        localStorage.removeItem("attribute-test");
+        storageDisplay.textContent = "localStorage cleared!";
+        updateStatus("localStorage cleared for attribute-test key");
+      }
+
+      // Listen for save events
+      testIde.addEventListener("save", (e) => {
+        updateStatus(`Save event fired! Files: ${e.detail.files.length}`);
+      });
+
+      // Initial state check
+      setTimeout(() => {
+        checkCurrentState();
+      }, 1000);
+    </script>
+  </body>
+</html>

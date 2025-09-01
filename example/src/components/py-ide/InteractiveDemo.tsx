@@ -9,6 +9,8 @@ declare global {
         HTMLElement
       > & {
         "storage-key"?: string;
+        "show-save-button"?: string;
+        "save-in-local-storage"?: string;
       };
     }
   }
