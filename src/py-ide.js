@@ -28,7 +28,7 @@ class PyIDEWebComponent extends HTMLElement {
     this.storageKey = "py-ide";
     this.showSaveButton = true;
     this.saveInLocalStorage = true;
-    this.indentSpaces = 4;
+    this.indentSpaces = 2;
     this.startEmpty = false;
 
     // Flags for lifecycle coordination (React/SSR-safe)
@@ -51,7 +51,7 @@ class PyIDEWebComponent extends HTMLElement {
     this.showSaveButton = this.getAttribute("show-save-button") !== "false";
     this.saveInLocalStorage =
       this.getAttribute("save-in-local-storage") !== "false";
-    this.indentSpaces = parseInt(this.getAttribute("indent-spaces")) || 4;
+    this.indentSpaces = parseInt(this.getAttribute("indent-spaces")) || 2;
     this.startEmpty = this.getAttribute("start-empty") === "true";
   }
 
@@ -90,7 +90,7 @@ class PyIDEWebComponent extends HTMLElement {
         }
         break;
       case "indent-spaces":
-        this.indentSpaces = parseInt(newValue) || 4;
+        this.indentSpaces = parseInt(newValue) || 2;
         if (this.editorManager) {
           this.editorManager.updateIndentSpaces(this.indentSpaces);
         }

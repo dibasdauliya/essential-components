@@ -415,8 +415,8 @@ export class UIManager {
                 <div class="py-ide-indent-control">
                   <label for="indentSelect" style="font-size: 12px; color: #cccccc; margin-right: 5px;">Indent:</label>
                   <select id="indentSelect" class="py-ide-select">
-                    <option value="2">2 spaces</option>
-                    <option value="4" selected>4 spaces</option>
+                    <option value="2" selected>2 spaces</option>
+                    <option value="4">4 spaces</option>
                     <option value="8">8 spaces</option>
                   </select>
                 </div>
