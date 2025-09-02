@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Input Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .instructions {
+        background: #f0f8ff;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Simple Input Test</h1>
+
+    <div class="instructions">
+      <h3>Expected behavior:</h3>
+      <ol>
+        <li>Click "Run" button</li>
+        <li>Should see "hello first" in output</li>
+        <li>Then prompt should appear asking for name</li>
+        <li>After entering name, should see "Hello [name]"</li>
+      </ol>
+    </div>
+
+    <py-ide storage-key="simple-input-test">
+      <script type="text/python">
+        print('hello first')
+        name = input("what's your name?")
+        print(f"Hello {name}")
+      </script>
+    </py-ide>
+
+    <script type="module" src="src/py-ide.js"></script>
+  </body>
+</html>

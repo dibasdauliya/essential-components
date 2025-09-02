@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terminal Input Debug</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .debug-info {
+        background: #f0f0f0;
+        padding: 10px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Terminal Input Debug</h1>
+
+    <div class="debug-info">
+      <h3>Debug Steps:</h3>
+      <ol>
+        <li>Open browser console (F12)</li>
+        <li>Click Run button</li>
+        <li>Watch console logs</li>
+        <li>Check if input field appears in output</li>
+      </ol>
+    </div>
+
+    <py-ide storage-key="terminal-debug">
+      <script type="text/python">
+        print('Step 1: Before input')
+        print('Step 2: About to call input')
+        name = input("Enter your name: ")
+        print(f'Step 3: Got name: {name}')
+        print('Step 4: Done')
+      </script>
+    </py-ide>
+
+    <script type="module" src="src/py-ide.js"></script>
+
+    <script>
+      // Add debug logging
+      console.log("Debug page loaded");
+
+      window.addEventListener("load", () => {
+        const pyide = document.querySelector("py-ide");
+        if (pyide) {
+          console.log("PyIDE found:", pyide);
+
+          // Monitor for changes in the shadow DOM
+          setTimeout(() => {
+            const shadowRoot = pyide.shadowRoot;
+            if (shadowRoot) {
+              const output = shadowRoot.getElementById("output");
+              console.log("Output element:", output);
+              if (output) {
+                // Monitor output changes
+                const observer = new MutationObserver((mutations) => {
+                  mutations.forEach((mutation) => {
+                    console.log("Output changed:", mutation);
+                  });
+                });
+                observer.observe(output, { childList: true, subtree: true });
+              }
+            }
+          }, 2000);
+        }
+      });
+    </script>
+  </body>
+</html>

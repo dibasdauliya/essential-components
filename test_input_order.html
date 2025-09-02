@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Input Order</title>
+  </head>
+  <body>
+    <h1>Test Python Input Order</h1>
+    <p>This test should show:</p>
+    <ol>
+      <li>"hello first"</li>
+      <li>Prompt for name input</li>
+      <li>"Hello [name]"</li>
+    </ol>
+
+    <py-ide storage-key="input-order-test">
+      <script type="text/python">
+        print('hello first')
+        name = input("what's your name?")
+        print(f"Hello {name}")
+      </script>
+    </py-ide>
+
+    <script type="module" src="../src/py-ide.js"></script>
+  </body>
+</html>

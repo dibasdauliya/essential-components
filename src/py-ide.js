@@ -141,7 +141,8 @@ class PyIDEWebComponent extends HTMLElement {
           );
         }
       },
-      (content) => this.uiManager.updateOutput(content)
+      (content) => this.uiManager.updateOutput(content),
+      this.shadowRoot
     );
 
     // Initialize editor manager with callbacks
@@ -422,6 +423,9 @@ class PyIDEWebComponent extends HTMLElement {
     }
     if (this.fileManager) {
       this.fileManager.destroy();
+    }
+    if (this.pyodideRunner) {
+      this.pyodideRunner.destroy();
     }
     if (this.storageManager) {
       this.storageManager.destroy();

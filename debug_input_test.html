@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Debug Input Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Debug Input Test</h1>
+
+    <div class="test-section">
+      <h2>Test 1: Basic Input Order</h2>
+      <py-ide storage-key="debug-test-1">
+        <script type="text/python">
+          print('hello first')
+          name = input("what's your name?")
+          print(f"Hello {name}")
+        </script>
+      </py-ide>
+    </div>
+
+    <div class="test-section">
+      <h2>Test 2: Multiple Prints and Inputs</h2>
+      <py-ide storage-key="debug-test-2">
+        <script type="text/python">
+          print('Starting program...')
+          print('This is line 2')
+          name = input("Enter your name: ")
+          print(f"Nice to meet you, {name}!")
+          age = input("How old are you? ")
+          print(f"You are {age} years old")
+          print('Program finished!')
+        </script>
+      </py-ide>
+    </div>
+
+    <script type="module" src="src/py-ide.js"></script>
+
+    <script>
+      // Debug logging
+      window.addEventListener("load", () => {
+        console.log("Page loaded");
+        const pyides = document.querySelectorAll("py-ide");
+        console.log("Found py-ide elements:", pyides.length);
+
+        pyides.forEach((ide, index) => {
+          console.log(`PyIDE ${index}:`, ide);
+
+          ide.addEventListener("submit", (e) => {
+            console.log(`PyIDE ${index} submit:`, e.detail);
+          });
+
+          ide.addEventListener("input", (e) => {
+            console.log(`PyIDE ${index} input:`, e.detail);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

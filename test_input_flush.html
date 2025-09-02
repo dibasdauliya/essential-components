@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test PyIDE Input Flush</title>
+  </head>
+  <body>
+    <h1>Test PyIDE Input with Output Flushing</h1>
+    <p>
+      Run this code to test that "hello first" appears before the input prompt:
+    </p>
+
+    <py-ide storage-key="test-input-flush">
+      <py-file name="test_input.py">
+        print('hello first') name = input("what's your name? ") print(f"Hello
+        {name}")
+      </py-file>
+    </py-ide>
+
+    <script type="module" src="./src/py-ide.js"></script>
+  </body>
+</html>

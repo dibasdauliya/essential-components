@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Direct Output Test</title>
+  </head>
+  <body>
+    <h2>Direct Output Test - Output should appear immediately</h2>
+    <py-ide storage-key="direct-test">
+      <py-file name="main.py">
+        print('hello first') name = input("what's your name? ") print(f"Hello
+        {name}")
+      </py-file>
+    </py-ide>
+    <script type="module" src="./src/py-ide.js"></script>
+  </body>
+</html>
