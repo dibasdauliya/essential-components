@@ -1,7 +1,3 @@
-/**
- * Modular PyIDE Web Component
- * This is the main component that orchestrates all the modules
- */
 import { EditorManager } from "./modules/EditorManager.js";
 import { FileManager } from "./modules/FileManager.js";
 import { PyodideRunner } from "./modules/PyodideRunner.js";
@@ -24,20 +20,20 @@ class PyIDEWebComponent extends HTMLElement {
 
     this.attachShadow({ mode: "open" });
 
-    // Initialize with default values - will be updated in connectedCallback
+    // Initialize with default values (fallbacks) - will be updated in connectedCallback (if provided)
     this.storageKey = "py-ide";
     this.showSaveButton = true;
     this.saveInLocalStorage = true;
     this.indentSpaces = 2;
     this.startEmpty = false;
 
-    // Flags for lifecycle coordination (React/SSR-safe)
+    // flags for lifecycle coordination (React/SSR-safe) as of 2025-08-28
     this._loadedFromStorage = false;
     this._parsedInitialFiles = false;
     this._childrenObserver = null;
     this._initialized = false;
 
-    // Initialize managers (will be properly set up in init)
+    // initialize managers
     this.editorManager = null;
     this.fileManager = null;
     this.pyodideRunner = null;
@@ -127,11 +123,9 @@ class PyIDEWebComponent extends HTMLElement {
       this.startEmpty
     );
 
-    // Initialize PyodideRunner with callbacks
     this.pyodideRunner = new PyodideRunner(
       (text, type) => {
         this.uiManager.updateStatus(text, type);
-        // Enable run button when Pyodide is ready
         if (type === "ready") {
           this.uiManager.updateButtonState(
             "runBtn",
@@ -162,7 +156,6 @@ class PyIDEWebComponent extends HTMLElement {
       this.fileManager.openFiles && this.fileManager.openFiles.length > 0;
     this.uiManager.showEditorContainer(hasOpenFiles);
 
-    // Load from storage
     this.loadFromStorage();
 
     // Ensure initial tabs render when there is no saved state
@@ -170,7 +163,6 @@ class PyIDEWebComponent extends HTMLElement {
       this.fileManager.renderFileTabs();
     }
 
-    // Initialize editor after a short delay
     setTimeout(() => this.editorManager.initializeCodeMirror(), 50);
   }
 
@@ -187,7 +179,6 @@ class PyIDEWebComponent extends HTMLElement {
     clearOutputBtn.addEventListener("click", () => this.clearOutput());
     addFileBtn.addEventListener("click", () => this.fileManager.addFile());
 
-    // Bind the create file button in the empty state
     if (createFileBtn) {
       createFileBtn.addEventListener("click", () => this.fileManager.addFile());
     }
@@ -196,17 +187,14 @@ class PyIDEWebComponent extends HTMLElement {
       this.bindSaveButton(saveBtn);
     }
 
-    // Setup resizer
     this.uiManager.setupResizer();
 
-    // Setup indent selector
     this.uiManager.setupIndentSelector(this.indentSpaces, (newIndentSpaces) => {
       this.handleIndentChange(newIndentSpaces);
     });
   }
 
   bindSaveButton(saveBtn) {
-    // Remove existing listeners to prevent duplicates
     const newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
 
@@ -278,7 +266,6 @@ class PyIDEWebComponent extends HTMLElement {
       })
     );
 
-    // Update run button state
     this.pyodideRunner.runCode(activeFile.content, (isRunning) => {
       this.uiManager.updateButtonState(
         "runBtn",
@@ -318,18 +305,15 @@ class PyIDEWebComponent extends HTMLElement {
   handleIndentChange(newIndentSpaces) {
     this.indentSpaces = newIndentSpaces;
 
-    // Update the editor
     if (this.editorManager) {
       this.editorManager.updateIndentSpaces(newIndentSpaces);
     }
 
-    // Update the attribute (this will trigger attributeChangedCallback but won't cause infinite loop due to the check)
+    // update the attribute (this will trigger attributeChangedCallback but won't cause infinite loop due to the check)
     this.setAttribute("indent-spaces", newIndentSpaces.toString());
 
-    // Save to storage if needed
     this.saveToStorage();
 
-    // Dispatch custom event
     this.dispatchEvent(
       new CustomEvent("indent-change", {
         detail: { indentSpaces: newIndentSpaces },
@@ -378,7 +362,7 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   connectedCallback() {
-    // Initialize attributes first (React may have set them after constructor)
+    // need to initialize attributes first
     if (!this._initialized) {
       this.initializeAttributes();
       this.init();
@@ -411,13 +395,13 @@ class PyIDEWebComponent extends HTMLElement {
     queueMicrotask(tryParseChildren);
     requestAnimationFrame(tryParseChildren);
 
-    // Fallback: observe for late-added children (e.g., React)
+    // fallback: observe for late-added children (e.g., React)
     this._childrenObserver = new MutationObserver(() => tryParseChildren());
     this._childrenObserver.observe(this, { childList: true, subtree: true });
   }
 
   disconnectedCallback() {
-    // Clean up all managers
+    // Clean up
     if (this.editorManager) {
       this.editorManager.destroy();
     }
@@ -434,14 +418,12 @@ class PyIDEWebComponent extends HTMLElement {
       this.uiManager.destroy();
     }
 
-    // Clean up observers
     if (this._childrenObserver) {
       this._childrenObserver.disconnect();
       this._childrenObserver = null;
     }
   }
 
-  // Public API
   get code() {
     return this.fileManager ? this.fileManager.getCode() : [];
   }
@@ -461,7 +443,6 @@ class PyIDEWebComponent extends HTMLElement {
 
 customElements.define("py-ide", PyIDEWebComponent);
 
-// export for module use
 if (typeof module !== "undefined" && module.exports) {
   module.exports = PyIDEWebComponent;
 }

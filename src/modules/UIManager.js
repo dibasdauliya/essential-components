@@ -13,7 +13,7 @@ export class UIManager {
     this.showSaveButton = showSaveButton;
   }
 
-  // Render the main UI structure
+  // main UI structure
   render() {
     const saveButtonHtml = this.showSaveButton
       ? '<button class="py-ide-button secondary" id="saveBtn" style="margin-left:auto;">Save</button>'
@@ -484,7 +484,7 @@ export class UIManager {
     output.scrollTop = output.scrollHeight;
   }
 
-  // Update button state with visual feedback
+  // Update button state with tick/checkmark feedback
   updateButtonState(
     buttonId,
     isActive,

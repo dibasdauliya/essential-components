@@ -1,5 +1,5 @@
 /**
- * EditorManager - Handles CodeMirror initialization and editor operations
+ * EditorManager - this handles CodeMirror initialization and editor operations
  */
 export class EditorManager {
   constructor(shadowRoot, onInput, onChange, indentSpaces = 4) {
@@ -102,7 +102,6 @@ export class EditorManager {
       value: initialContent,
       mode: {
         name: "python",
-        // Disable strict indentation checking to allow flexible indentation
         singleLineStringErrors: false,
       },
       theme: "material-darker",
@@ -114,7 +113,7 @@ export class EditorManager {
       indentUnit: this.indentSpaces,
       tabSize: this.indentSpaces,
       indentWithTabs: false,
-      smartIndent: false, // Disable smart indentation to prevent strict checking
+      smartIndent: false,
       extraKeys: {
         "Ctrl-Space": "autocomplete",
         Tab: (cm) => {
@@ -246,7 +245,7 @@ export class EditorManager {
         }
       });
     } else {
-      // fallback to textarea editor
+      // fallback to normie textarea editor
       const editor = this.shadowRoot.getElementById("editor");
       if (editor && editor.value !== content) {
         editor.value = content;
