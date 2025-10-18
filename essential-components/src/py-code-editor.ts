@@ -3,7 +3,6 @@ import { customElement, property, state } from "lit/decorators.js";
 import { createRef, Ref, ref } from "lit/directives/ref.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
-// -- Monaco Editor Imports --
 import * as monaco from "monaco-editor";
 import styles from "monaco-editor/min/vs/editor/editor.main.css?inline";
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
