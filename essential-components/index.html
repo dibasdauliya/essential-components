@@ -3,179 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Python Code Editor Demo</title>
+    <title>Document</title>
+
     <style>
       body {
         margin: 0;
         padding: 20px;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: #1a1a1a;
+        background: #121212;
         color: #e0e0e0;
-      }
-
-      h1 {
-        text-align: center;
-        margin-bottom: 30px;
-        color: #4ade80;
-      }
-
-      .container {
-        max-width: 1400px;
-        margin: 0 auto;
-      }
-
-      .examples {
-        margin-bottom: 20px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      .examples button {
-        padding: 8px 16px;
-        background: #0e639c;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      .examples button:hover {
-        background: #1177bb;
-      }
-
-      py-code-editor {
-        margin-bottom: 20px;
-      }
-
-      .info {
-        background: #2d2d30;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 20px;
-      }
-
-      .info h3 {
-        margin-top: 0;
-        color: #4ade80;
-      }
-
-      .info ul {
-        margin: 10px 0;
-        padding-left: 20px;
-      }
-
-      .info li {
-        margin: 5px 0;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="examples">
-        <button onclick="loadExample('basic')">Basic Example</button>
-        <button onclick="loadExample('numpy')">NumPy Example</button>
-        <button onclick="loadExample('matplotlib')">Matplotlib Example</button>
-        <button onclick="loadExample('requests')">Web Request Example</button>
-        <button onclick="loadExample('input')">User Input Example</button>
-      </div>
+    <h1>Testing Essential Components which are converted to Lit</h1>
 
-      <py-code-editor id="editor"></py-code-editor>
-    </div>
-
-    <script type="module">
-      import "./src/py-code-editor.ts";
-
-      const examples = {
-        basic: `print("Hello from Pyodide!")
-
-result = sum([1, 2, 3, 4, 5])
-print(f"Sum: {result}")
-
-squares = [x**2 for x in range(1, 6)]
-print(f"Squares: {squares}")
-`,
-        numpy: `import numpy as np
-
-arr = np.array([1, 2, 3, 4, 5])
-print(f"Array: {arr}")
-
-print(f"Mean: {np.mean(arr)}")
-print(f"Std: {np.std(arr)}")
-
-matrix = np.array([[1, 2], [3, 4]])
-print(f"Matrix:{matrix}")
-print(f"Determinant: {np.linalg.det(matrix)}")
-`,
-        matplotlib: `import matplotlib.pyplot as plt
-import numpy as np
-
-x = np.linspace(0, 2 * np.pi, 100)
-y1 = np.sin(x)
-y2 = np.cos(x)
-
-plt.figure(figsize=(10, 6))
-plt.plot(x, y1, label='sin(x)', linewidth=2)
-plt.plot(x, y2, label='cos(x)', linewidth=2)
-plt.xlabel('x')
-plt.ylabel('y')
-plt.title('Sine and Cosine Functions')
-plt.legend()
-plt.grid(True, alpha=0.3)
-
-plt.show()
-`,
-        requests: `import requests
-
-try:
-    response = requests.get('https://api.github.com/repos/python/cpython')
-    
-    if response.status_code == 200:
-        data = response.json()
-        print(f"Repository: {data['name']}")
-        print(f"Description: {data['description']}")
-        print(f"Stars: {data['stargazers_count']:,}")
-        print(f"Forks: {data['forks_count']:,}")
-        print(f"Language: {data['language']}")
-    else:
-        print(f"Error: Status code {response.status_code}")
-        
-except Exception as e:
-    print(f"Error: {e}")
-`,
-        input: `name = input("What's your name? ")
-print(f"Hello, {name}!")
-
-try:
-    age = int(input("What's your age? "))
-    print(f"In 10 years, you'll be {age + 10} years old!")
-except ValueError:
-    print("That's not a valid number!")
-`,
-      };
-
-      window.loadExample = function (type) {
-        const editor = document.getElementById("editor");
-        if (editor && examples[type]) {
-          editor.setValue(examples[type]);
-        }
-      };
-
-      // Event listeners
-      const editor = document.getElementById("editor");
-
-      editor.addEventListener("input", (e) => {
-        console.log("Input event:", e.detail);
-      });
-
-      editor.addEventListener("change", (e) => {
-        console.log("Change event:", e.detail);
-      });
-
-      editor.addEventListener("submit", (e) => {
-        console.log("Submit event (code is running):", e.detail);
-      });
-    </script>
+    <ul>
+      <li>
+        <a href="./py-code-editor.html" target="_blank">Python Code Editor</a>
+      </li>
+      <li>
+        <a href="./activities-widget.html" target="_blank">Activities Widget</a>
+      </li>
+    </ul>
   </body>
 </html>
