@@ -2,23 +2,14 @@ class PyIDEWebComponent extends HTMLElement {
   constructor() {
     super();
 
-    this.files = [
-      {
-        id: "main-py",
-        name: "main.py",
-        content: 'print("Hello, World!")\n',
-        lastModified: Date.now(),
-      },
-    ];
-    this.activeFileId = "main-py";
-    this.openFiles = ["main-py"];
+    this.code = 'print("Hello, World!")\n';
     this.pyodide = null;
     this.pyodideReady = false;
     this.isRunning = false;
     this.lastOutput = "";
     this.installedPackages = new Set();
     // Flags for lifecycle coordination (React/SSR-safe)
-    this._parsedInitialFiles = false;
+    this._parsedInitialCode = false;
     this._childrenObserver = null;
 
     // Debounced input handler
@@ -28,34 +19,26 @@ class PyIDEWebComponent extends HTMLElement {
     // Don't call init() here - wait for connectedCallback
     this._initialized = false;
   }
-  // Read initial files passed via light DOM children
-  parseInitialFilesFromLightDom() {
-    console.log("here");
+  // Read initial code passed via light DOM children
+  // This must be called BEFORE render() to capture the original children
+  parseInitialCodeFromLightDom() {
     try {
-      const files = [];
-
-      // Support <py-file name="main.py">...</py-file>
-      this.querySelectorAll("py-file[name]").forEach((el) => {
-        const name = el.getAttribute("name") || "untitled.py";
-        const content = el.textContent.trim() || "";
-        files.push({ name, content });
-      });
-
       // Support <script type="text/plain" data-filename="main.py">...</script>
-      this.querySelectorAll("script[type='text/plain'][data-filename]").forEach(
-        (el) => {
-          const name = el.getAttribute("data-filename") || "untitled.py";
-          const content = el.textContent.trim() || "";
-          files.push({ name, content });
-        }
-      );
+      const scriptEl = this.querySelector("script");
+      console.log({ scriptEl });
+      if (scriptEl) {
+        return scriptEl.textContent.trim();
+      }
 
-      console.log("here2");
-      console.log({ files });
+      // Support direct text content (but filter out empty whitespace)
+      const textContent = this.textContent.trim();
+      if (textContent) {
+        return textContent;
+      }
 
-      return files.length > 0 ? files : null;
+      return null;
     } catch (e) {
-      console.log({ e });
+      console.error("Error parsing initial code:", e);
       return null;
     }
   }
@@ -145,9 +128,8 @@ class PyIDEWebComponent extends HTMLElement {
     }
 
     try {
-      const activeFile = this.getActiveFile();
       this.monacoEditor = window.monaco.editor.create(editorContainer, {
-        value: activeFile ? activeFile.content : "",
+        value: this.code,
         language: "python",
         theme: "vs-dark",
         automaticLayout: true,
@@ -186,12 +168,17 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   init() {
+    // Parse code BEFORE rendering (which clears innerHTML)
+    if (!this._parsedInitialCode) {
+      const initialCode = this.parseInitialCodeFromLightDom();
+      if (initialCode) {
+        this.code = initialCode;
+        this._parsedInitialCode = true;
+      }
+    }
+
     this.render();
     this.bindEvents();
-    // ensure initial tabs render
-    if (this.files && this.files.length > 0) {
-      this.renderFileTabs();
-    }
     setTimeout(() => this.initializeMonaco(), 50);
   }
 
@@ -204,9 +191,7 @@ class PyIDEWebComponent extends HTMLElement {
     textarea.className = "py-ide-editor-fallback";
     textarea.id = "editor";
     textarea.placeholder = "Enter your Python code here...";
-
-    const activeFile = this.getActiveFile();
-    if (activeFile) textarea.value = activeFile.content;
+    textarea.value = this.code;
 
     textarea.addEventListener("input", (e) => {
       this.handleEditorInput(e.target.value);
@@ -230,11 +215,11 @@ class PyIDEWebComponent extends HTMLElement {
 
     // Defer parsing light DOM so React has time to append children
     const tryParseChildren = () => {
-      if (this._parsedInitialFiles) return;
-      const initialFiles = this.parseInitialFilesFromLightDom();
-      if (initialFiles && initialFiles.length > 0) {
-        this.setCode(initialFiles);
-        this._parsedInitialFiles = true;
+      if (this._parsedInitialCode) return;
+      const initialCode = this.parseInitialCodeFromLightDom();
+      if (initialCode) {
+        this.setCode(initialCode);
+        this._parsedInitialCode = true;
         if (this._childrenObserver) {
           this._childrenObserver.disconnect();
           this._childrenObserver = null;
@@ -265,47 +250,17 @@ class PyIDEWebComponent extends HTMLElement {
     }
   }
 
-  get code() {
-    return this.files.map((file) => ({
-      name: file.name,
-      content: file.content,
-    }));
-  }
-
   get output() {
     return this.lastOutput;
   }
 
-  setCode(filesArray) {
-    if (!Array.isArray(filesArray) || filesArray.length === 0) {
+  setCode(codeString) {
+    if (typeof codeString !== "string") {
       return;
     }
 
-    this.files = [];
-    this.openFiles = [];
-    this.activeFileId = null;
-
-    // Add new files
-    filesArray.forEach((file, index) => {
-      const id = `file-${index}-${Math.random().toString(36).substr(2, 9)}`;
-      const newFile = {
-        id,
-        name: file.name || `file${index + 1}.py`,
-        content: file.content || "",
-        lastModified: Date.now(),
-      };
-
-      this.files.push(newFile);
-      this.openFiles.push(id);
-
-      // Set first file as active
-      if (index === 0) {
-        this.activeFileId = id;
-      }
-    });
-
-    this.loadActiveFile();
-    this.renderFileTabs();
+    this.code = codeString;
+    this.loadCode();
   }
 
   render() {
@@ -375,45 +330,6 @@ class PyIDEWebComponent extends HTMLElement {
   
           .py-ide-divider:hover {
             background: #5a5a5c;
-          }
-  
-          .py-ide-file-tabs {
-            background: #252526;
-            display: flex;
-            border-bottom: 1px solid #3e3e3e;
-            overflow-x: auto;
-          }
-  
-          .py-ide-file-tab {
-            padding: 8px 16px;
-            background: #2d2d30;
-            border-right: 1px solid #3e3e3e;
-            cursor: pointer;
-            white-space: nowrap;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          }
-  
-          .py-ide-file-tab.active {
-            background: #1e1e1e;
-            color: #ffffff;
-          }
-  
-          .py-ide-file-tab:hover {
-            background:rgba(55, 55, 61, 0.68);
-          }
-  
-          .py-ide-file-tab-close {
-            color: #cccccc;
-            cursor: pointer;
-            padding: 2px;
-            border-radius: 2px;
-          }
-  
-          .py-ide-file-tab-close:hover {
-            background: #464647;
           }
   
           .py-ide-editor-container {
@@ -542,26 +458,6 @@ class PyIDEWebComponent extends HTMLElement {
             border-radius: 4px;
           }
   
-          .py-ide-add-file {
-            background: #464647;
-            color: #cccccc;
-            border: none;
-            padding: 8px;
-            cursor: pointer;
-            border-right: 1px solid #3e3e3e;
-            font-size: 16px;
-            font-weight: bold;
-          }
-  
-          .py-ide-add-file:hover {
-            background: #5a5a5c;
-          }
-  
-          #fileTabs {
-            display: flex;
-            flex-wrap: wrap;
-          }
-  
           @media (max-width: 768px) {
             .py-ide-main {
               flex-direction: column;
@@ -589,11 +485,6 @@ class PyIDEWebComponent extends HTMLElement {
   
           <div class="py-ide-main">
             <div class="py-ide-editor-section" id="editorPane" style="min-width:240px; flex-basis: 65%;">
-              <div class="py-ide-file-tabs">
-                <button class="py-ide-add-file" id="addFileBtn" title="Add new file">+</button>
-                <div id="fileTabs"></div>
-              </div>
-  
               <div class="py-ide-editor-container">
                 <div class="py-ide-editor-wrap">
                   <div id="editorContainer"></div>
@@ -621,34 +512,21 @@ class PyIDEWebComponent extends HTMLElement {
 
   bindEvents() {
     const runBtn = this.querySelector("#runBtn");
-    // const clearBtn = this.querySelector("#clearBtn");
     const clearOutputBtn = this.querySelector("#clearOutputBtn");
-    const addFileBtn = this.querySelector("#addFileBtn");
     const divider = this.querySelector("#divider");
     const editorPane = this.querySelector("#editorPane");
     const outputPane = this.querySelector("#outputPane");
 
-    // Editor events are handled in initEditor() method for CodeMirror
+    // Editor events are handled in initEditor() method for Monaco
     // Fallback textarea events are handled in initFallbackEditor() method
 
     runBtn.addEventListener("click", () => {
       this.handleRun();
     });
 
-    // clearBtn.addEventListener("click", () => {
-    //   this.clearOutput();
-    // });
-
     clearOutputBtn.addEventListener("click", () => {
       this.clearOutput();
     });
-
-    addFileBtn.addEventListener("click", () => {
-      this.addFile();
-    });
-
-    // Load initial file
-    this.loadActiveFile();
 
     // Resizer drag logic
     let isDragging = false;
@@ -690,11 +568,7 @@ class PyIDEWebComponent extends HTMLElement {
 
   // Handle editor input with debouncing
   handleEditorInput(content) {
-    const activeFile = this.getActiveFile();
-    if (activeFile) {
-      activeFile.content = content;
-      activeFile.lastModified = Date.now();
-    }
+    this.code = content;
 
     // Debounced input event
     if (this.inputTimeout) {
@@ -703,7 +577,7 @@ class PyIDEWebComponent extends HTMLElement {
     this.inputTimeout = setTimeout(() => {
       this.dispatchEvent(
         new CustomEvent("input", {
-          detail: { content, fileName: activeFile?.name },
+          detail: { content },
         })
       );
     }, 300);
@@ -711,15 +585,12 @@ class PyIDEWebComponent extends HTMLElement {
 
   // Handle editor change (when user tabs away)
   handleEditorChange() {
-    const activeFile = this.getActiveFile();
-    if (activeFile && activeFile.content !== this.lastContent) {
-      this.lastContent = activeFile.content;
+    if (this.code !== this.lastContent) {
+      this.lastContent = this.code;
       this.dispatchEvent(
         new CustomEvent("change", {
           detail: {
-            content: activeFile.content,
-            fileName: activeFile.name,
-            fileId: activeFile.id,
+            content: this.code,
           },
         })
       );
@@ -729,19 +600,15 @@ class PyIDEWebComponent extends HTMLElement {
   handleRun() {
     if (!this.pyodideReady || this.isRunning) return;
 
-    const activeFile = this.getActiveFile();
-    if (!activeFile) return;
-
     this.dispatchEvent(
       new CustomEvent("submit", {
         detail: {
-          content: activeFile.content,
-          fileName: activeFile.name,
+          content: this.code,
         },
       })
     );
 
-    this.runCode(activeFile.content);
+    this.runCode(this.code);
   }
 
   async loadPyodide() {
@@ -1054,116 +921,20 @@ class PyIDEWebComponent extends HTMLElement {
     return cleanError;
   }
 
-  // file management methods
-  getActiveFile() {
-    return this.files.find((f) => f.id === this.activeFileId) || null;
-  }
-
-  addFile() {
-    let name = prompt("Enter file name (e.g., script.py):");
-    if (!name) return;
-
-    if (!name.endsWith(".py")) {
-      name += ".py";
+  // Load code into editor
+  loadCode() {
+    // update Monaco if available
+    if (this.monacoEditor) {
+      this.monacoEditor.setValue(this.code);
+    } else {
+      // fallback to textarea editor
+      const editor = this.querySelector("#editor");
+      if (editor) {
+        editor.value = this.code;
+      }
     }
 
-    const id = "file-" + Math.random().toString(36).substr(2, 9);
-    const newFile = {
-      id,
-      name,
-      content: "",
-      lastModified: Date.now(),
-    };
-
-    this.files.push(newFile);
-    this.openFiles.push(id);
-    this.selectFile(id);
-    this.renderFileTabs();
-  }
-
-  selectFile(fileId) {
-    if (!this.openFiles.includes(fileId)) {
-      this.openFiles.push(fileId);
-    }
-    this.activeFileId = fileId;
-    this.loadActiveFile();
-    this.renderFileTabs();
-  }
-
-  closeFile(fileId) {
-    const index = this.openFiles.indexOf(fileId);
-    if (index > -1) {
-      this.openFiles.splice(index, 1);
-
-      // Also remove from files array to fix memory leak
-      const fileIndex = this.files.findIndex((f) => f.id === fileId);
-      if (fileIndex > -1) {
-        this.files.splice(fileIndex, 1);
-      }
-
-      if (this.activeFileId === fileId) {
-        this.activeFileId =
-          this.openFiles.length > 0
-            ? this.openFiles[this.openFiles.length - 1]
-            : this.files[0]?.id;
-        this.loadActiveFile();
-      }
-
-      this.renderFileTabs();
-    }
-  }
-
-  loadActiveFile() {
-    const activeFile = this.getActiveFile();
-
-    if (activeFile) {
-      // update Monaco if available
-      if (this.monacoEditor) {
-        this.monacoEditor.setValue(activeFile.content);
-      } else {
-        // fallback to textarea editor
-        const editor = this.querySelector("#editor");
-        if (editor) {
-          editor.value = activeFile.content;
-        }
-      }
-
-      this.lastContent = activeFile.content;
-    }
-  }
-
-  renderFileTabs() {
-    const container = this.querySelector("#fileTabs");
-    const openFiles = this.openFiles
-      .map((id) => this.files.find((f) => f.id === id))
-      .filter(Boolean);
-
-    container.innerHTML = openFiles
-      .map(
-        (file) => `
-        <div class="py-ide-file-tab ${
-          file.id === this.activeFileId ? "active" : ""
-        }" 
-             data-file-id="${file.id}">
-          <span>${file.name}</span>
-          <span class="py-ide-file-tab-close" data-close="${file.id}">×</span>
-        </div>
-      `
-      )
-      .join("");
-
-    // bind tab events
-    container.addEventListener("click", (e) => {
-      const fileId = e.target.closest(".py-ide-file-tab")?.dataset.fileId;
-      const closeId = e.target.dataset.close;
-
-      if (closeId) {
-        e.stopPropagation();
-        this.closeFile(closeId);
-      } else if (fileId) {
-        this.selectFile(fileId);
-      }
-    });
+    this.lastContent = this.code;
   }
 
   // UI update methods
