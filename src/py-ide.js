@@ -2,9 +2,6 @@ class PyIDEWebComponent extends HTMLElement {
   constructor() {
     super();
 
-    this.attachShadow({ mode: "open" });
-
-    this.storageKey = this.getAttribute("storage-key") || "py-ide";
     this.files = [
       {
         id: "main-py",
@@ -21,7 +18,6 @@ class PyIDEWebComponent extends HTMLElement {
     this.lastOutput = "";
     this.installedPackages = new Set();
     // Flags for lifecycle coordination (React/SSR-safe)
-    this._loadedFromStorage = false;
     this._parsedInitialFiles = false;
     this._childrenObserver = null;
 
@@ -29,7 +25,8 @@ class PyIDEWebComponent extends HTMLElement {
     this.inputTimeout = null;
     this.lastContent = "";
 
-    this.init();
+    // Don't call init() here - wait for connectedCallback
+    this._initialized = false;
   }
   // Read initial files passed via light DOM children
   parseInitialFilesFromLightDom() {
@@ -63,149 +60,144 @@ class PyIDEWebComponent extends HTMLElement {
     }
   }
 
-  initializeCodeMirror() {
-    const addStyle = (href) => {
-      if (document.querySelector(`link[href="${href}"]`)) return;
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = href;
-      document.head.appendChild(link);
-    };
+  initializeMonaco() {
+    // Set up require paths if not already set
+    if (!window.require) {
+      window.require = {
+        paths: {
+          vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs",
+        },
+      };
+    }
 
-    const addScript = (src, isModule = false) =>
-      new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) {
+    // Load Monaco loader script if not already loaded
+    if (!window.__pyide_monaco_loaded) {
+      window.__pyide_monaco_loaded = new Promise((resolve, reject) => {
+        if (
+          document.querySelector(
+            'script[src*="monaco-editor"][src*="loader.js"]'
+          )
+        ) {
           resolve();
           return;
         }
-        const s = document.createElement("script");
-        s.src = src;
-        if (isModule) {
-          s.type = "module";
-        }
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
+
+        const script = document.createElement("script");
+        script.src =
+          "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js";
+        script.onload = () => {
+          console.log("Monaco loader script loaded");
+
+          window.require.config({
+            paths: {
+              vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs",
+            },
+          });
+
+          window.require(
+            ["vs/editor/editor.main"],
+            () => {
+              console.log("Monaco editor main loaded successfully");
+              resolve();
+            },
+            (error) => {
+              console.error("Error loading Monaco editor main:", error);
+              reject(error);
+            }
+          );
+        };
+        script.onerror = (error) => {
+          console.error("Error loading Monaco loader script:", error);
+          reject(error);
+        };
+        document.head.appendChild(script);
       });
-
-    if (!window.__pyide_codemirror_loaded) {
-      // CodeMirror CSS
-      addStyle(
-        "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"
-      );
-      addStyle(
-        "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css"
-      );
-
-      // CodeMirror library and addons
-      window.__pyide_codemirror_loaded = addScript(
-        "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"
-      )
-        .then(() =>
-          addScript(
-            "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"
-          )
-        )
-        .then(() =>
-          addScript(
-            "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"
-          )
-        )
-        .then(() =>
-          addScript(
-            "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"
-          )
-        )
-        .then(() =>
-          addScript(
-            "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"
-          )
-        );
     }
 
-    Promise.resolve(window.__pyide_codemirror_loaded)
+    Promise.resolve(window.__pyide_monaco_loaded)
       .then(() => {
-        console.log("CodeMirror ready");
+        console.log("Monaco ready");
         this.initEditor();
       })
       .catch((err) => {
-        console.warn("CodeMirror failed to load:", err);
+        console.warn("Monaco failed to load:", err);
         this.initFallbackEditor();
       });
   }
 
   initEditor() {
-    const editorContainer = this.shadowRoot.getElementById("editorContainer");
+    const editorContainer = this.querySelector("#editorContainer");
     if (!editorContainer) {
       console.error("Editor container not found");
       this.initFallbackEditor();
       return;
     }
 
-    if (this.codeMirror) {
-      console.warn("CodeMirror already initialized");
+    if (this.monacoEditor) {
+      console.warn("Monaco editor already initialized");
       return;
     }
 
-    const activeFile = this.getActiveFile();
-    this.codeMirror = window.CodeMirror(editorContainer, {
-      value: activeFile ? activeFile.content : "",
-      mode: "python",
-      theme: "material-darker",
-      lineNumbers: true,
-      lineWrapping: true,
-      autoCloseBrackets: true,
-      matchBrackets: true,
-      styleActiveLine: true,
-      indentUnit: 4,
-      tabSize: 4,
-      indentWithTabs: false,
-      extraKeys: {
-        "Ctrl-Space": "autocomplete",
-        Tab: (cm) => {
-          if (cm.somethingSelected()) {
-            cm.indentSelection("add");
-          } else {
-            cm.replaceSelection(
-              Array(cm.getOption("indentUnit") + 1).join(" ")
-            );
-          }
-        },
-      },
-    });
+    if (!window.monaco) {
+      console.error("Monaco is not loaded yet");
+      this.initFallbackEditor();
+      return;
+    }
 
-    this.codeMirror.on("change", (instance) => {
-      this.handleEditorInput(instance.getValue());
-    });
+    try {
+      const activeFile = this.getActiveFile();
+      this.monacoEditor = window.monaco.editor.create(editorContainer, {
+        value: activeFile ? activeFile.content : "",
+        language: "python",
+        theme: "vs-dark",
+        automaticLayout: true,
+        minimap: { enabled: false },
+        fontSize: 14,
+        lineNumbers: "on",
+        roundedSelection: false,
+        scrollBeyondLastLine: false,
+        readOnly: false,
+        tabSize: 4,
+        insertSpaces: true,
+      });
 
-    this.codeMirror.on("blur", () => {
-      this.handleEditorChange();
-    });
+      // Handle content changes
+      this.monacoEditor.onDidChangeModelContent(() => {
+        this.handleEditorInput(this.monacoEditor.getValue());
+      });
 
-    // ensure proper layout after mount
-    requestAnimationFrame(() => this.codeMirror && this.codeMirror.refresh());
-    setTimeout(() => this.codeMirror && this.codeMirror.refresh(), 100);
-    window.addEventListener(
-      "resize",
-      () => this.codeMirror && this.codeMirror.refresh()
-    );
+      // Handle blur events
+      this.monacoEditor.onDidBlurEditorText(() => {
+        this.handleEditorChange();
+      });
+
+      console.log("Monaco editor created successfully");
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        if (this.monacoEditor) {
+          this.monacoEditor.layout();
+        }
+      });
+    } catch (error) {
+      console.error("Error creating Monaco editor:", error);
+      this.initFallbackEditor();
+    }
   }
 
   init() {
     this.render();
     this.bindEvents();
-    // Do NOT parse light DOM here. In React, children may not be appended yet.
-    this.loadFromStorage();
-    // ensure initial tabs render when there is no saved state
+    // ensure initial tabs render
     if (this.files && this.files.length > 0) {
       this.renderFileTabs();
     }
-    setTimeout(() => this.initializeCodeMirror(), 50);
+    setTimeout(() => this.initializeMonaco(), 50);
   }
 
   // Fallback textarea editor
   initFallbackEditor() {
-    const editorContainer = this.shadowRoot.getElementById("editorContainer");
+    const editorContainer = this.querySelector("#editorContainer");
     if (!editorContainer) return;
 
     const textarea = document.createElement("textarea");
@@ -228,6 +220,12 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   connectedCallback() {
+    // Initialize only once
+    if (!this._initialized) {
+      this.init();
+      this._initialized = true;
+    }
+
     this.loadPyodide();
 
     // Defer parsing light DOM so React has time to append children
@@ -235,16 +233,7 @@ class PyIDEWebComponent extends HTMLElement {
       if (this._parsedInitialFiles) return;
       const initialFiles = this.parseInitialFilesFromLightDom();
       if (initialFiles && initialFiles.length > 0) {
-        // Only apply if nothing meaningful was loaded from storage
-        const hasOnlyDefault =
-          this.files.length === 1 &&
-          this.files[0].id === "main-py" &&
-          typeof this.files[0].content === "string" &&
-          this.files[0].content.includes("Hello, World!");
-
-        if (!this._loadedFromStorage || hasOnlyDefault) {
-          this.setCode(initialFiles);
-        }
+        this.setCode(initialFiles);
         this._parsedInitialFiles = true;
         if (this._childrenObserver) {
           this._childrenObserver.disconnect();
@@ -266,8 +255,9 @@ class PyIDEWebComponent extends HTMLElement {
     if (this.inputTimeout) {
       clearTimeout(this.inputTimeout);
     }
-    if (this.codeMirror) {
-      this.codeMirror.toTextArea();
+    if (this.monacoEditor) {
+      this.monacoEditor.dispose();
+      this.monacoEditor = null;
     }
     if (this._childrenObserver) {
       this._childrenObserver.disconnect();
@@ -316,68 +306,15 @@ class PyIDEWebComponent extends HTMLElement {
 
     this.loadActiveFile();
     this.renderFileTabs();
-    // Persist after setting code
-    this.saveToStorage();
-  }
-
-  saveToStorage() {
-    try {
-      const payload = {
-        files: this.files.map((f) => ({
-          id: f.id,
-          name: f.name,
-          content: f.content,
-          lastModified: f.lastModified,
-        })),
-        activeFileId: this.activeFileId,
-        openFiles: this.openFiles,
-        lastOutput: this.lastOutput,
-        savedAt: Date.now(),
-      };
-      localStorage.setItem(this.storageKey, JSON.stringify(payload));
-    } catch (err) {
-      console.warn("PyIDE: Failed to save to localStorage:", err);
-    }
-  }
-
-  loadFromStorage() {
-    try {
-      const raw = localStorage.getItem(this.storageKey);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (!data || !Array.isArray(data.files) || data.files.length === 0)
-        return;
-
-      this.files = data.files.map((f) => ({
-        id: f.id,
-        name: f.name,
-        content: f.content,
-        lastModified: f.lastModified || Date.now(),
-      }));
-      this.activeFileId = data.activeFileId || this.files[0]?.id;
-      this.openFiles =
-        Array.isArray(data.openFiles) && data.openFiles.length > 0
-          ? data.openFiles
-          : [this.activeFileId];
-      this.lastOutput =
-        typeof data.lastOutput === "string" ? data.lastOutput : "";
-
-      // Sync UI
-      this.loadActiveFile();
-      this.renderFileTabs();
-      if (this.lastOutput) {
-        this.updateOutput(this.lastOutput);
-      }
-      this._loadedFromStorage = true;
-    } catch (err) {
-      console.warn("PyIDE: Failed to load from localStorage:", err);
-    }
   }
 
   render() {
-    this.shadowRoot.innerHTML = `
+    // Clear any existing content (including React children placeholders)
+    const existingChildren = Array.from(this.children);
+
+    this.innerHTML = `
         <style>
-          :host {
+          py-ide {
             display: block;
             width: 100%;
             height: 600px;
@@ -517,24 +454,13 @@ class PyIDEWebComponent extends HTMLElement {
             box-sizing: border-box;
           }
   
-          /* CodeMirror overrides for dark theme consistency */
-          .CodeMirror {
+          /* Monaco Editor styling */
+          .monaco-editor {
             height: 100%;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.5;
           }
-  
-          .CodeMirror-focused .CodeMirror-cursor {
-            border-left: 1px solid #d4d4d4;
-          }
-  
-          .CodeMirror-selected {
-            background: #264f78;
-          }
-  
-          .CodeMirror-focused .CodeMirror-selected {
-            background: #264f78;
+          
+          .monaco-editor .overflow-guard {
+            border-radius: 0;
           }
   
           .py-ide-controls {
@@ -655,8 +581,6 @@ class PyIDEWebComponent extends HTMLElement {
             }
           }
         </style>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
   
         <div class="py-ide-container">
           <div class="py-ide-header">
@@ -678,8 +602,6 @@ class PyIDEWebComponent extends HTMLElement {
   
               <div class="py-ide-controls">
                 <button class="py-ide-button" id="runBtn" disabled>Run</button>
-                <button class="py-ide-button secondary" id="clearBtn">Clear Output</button>
-                <button class="py-ide-button secondary" id="saveBtn" style="margin-left:auto;">Save</button>
               </div>
             </div>
   
@@ -698,14 +620,13 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   bindEvents() {
-    const runBtn = this.shadowRoot.getElementById("runBtn");
-    const clearBtn = this.shadowRoot.getElementById("clearBtn");
-    const clearOutputBtn = this.shadowRoot.getElementById("clearOutputBtn");
-    const addFileBtn = this.shadowRoot.getElementById("addFileBtn");
-    const saveBtn = this.shadowRoot.getElementById("saveBtn");
-    const divider = this.shadowRoot.getElementById("divider");
-    const editorPane = this.shadowRoot.getElementById("editorPane");
-    const outputPane = this.shadowRoot.getElementById("outputPane");
+    const runBtn = this.querySelector("#runBtn");
+    // const clearBtn = this.querySelector("#clearBtn");
+    const clearOutputBtn = this.querySelector("#clearOutputBtn");
+    const addFileBtn = this.querySelector("#addFileBtn");
+    const divider = this.querySelector("#divider");
+    const editorPane = this.querySelector("#editorPane");
+    const outputPane = this.querySelector("#outputPane");
 
     // Editor events are handled in initEditor() method for CodeMirror
     // Fallback textarea events are handled in initFallbackEditor() method
@@ -714,9 +635,9 @@ class PyIDEWebComponent extends HTMLElement {
       this.handleRun();
     });
 
-    clearBtn.addEventListener("click", () => {
-      this.clearOutput();
-    });
+    // clearBtn.addEventListener("click", () => {
+    //   this.clearOutput();
+    // });
 
     clearOutputBtn.addEventListener("click", () => {
       this.clearOutput();
@@ -724,10 +645,6 @@ class PyIDEWebComponent extends HTMLElement {
 
     addFileBtn.addEventListener("click", () => {
       this.addFile();
-    });
-
-    saveBtn.addEventListener("click", () => {
-      this.handleSave();
     });
 
     // Load initial file
@@ -743,7 +660,7 @@ class PyIDEWebComponent extends HTMLElement {
     const onMouseMove = (e) => {
       if (!isDragging) return;
       const delta = e.clientX - startX;
-      const container = this.shadowRoot.querySelector(".py-ide-main");
+      const container = this.querySelector(".py-ide-main");
       const containerRect = container.getBoundingClientRect();
       const newEditorWidth = Math.max(
         minEditor,
@@ -789,8 +706,6 @@ class PyIDEWebComponent extends HTMLElement {
           detail: { content, fileName: activeFile?.name },
         })
       );
-      // Auto-save on input debounce
-      this.saveToStorage();
     }, 300);
   }
 
@@ -798,16 +713,6 @@ class PyIDEWebComponent extends HTMLElement {
   handleEditorChange() {
     const activeFile = this.getActiveFile();
     if (activeFile && activeFile.content !== this.lastContent) {
-      const saveBtn = this.shadowRoot.getElementById("saveBtn");
-      const checkSvg =
-        '<svg viewBox="0 0 16 16" width="14" height="14" style="vertical-align: -2px; margin-left:6px; fill:#4ade80;"><path d="M6.173 13.727L.946 8.5l1.414-1.414 3.813 3.813 7.466-7.466 1.414 1.414z"/></svg>';
-      if (saveBtn) {
-        if (!saveBtn.dataset.originalText)
-          saveBtn.dataset.originalText = saveBtn.textContent || "Save";
-        saveBtn.textContent = "Saving...";
-        saveBtn.disabled = true;
-      }
-
       this.lastContent = activeFile.content;
       this.dispatchEvent(
         new CustomEvent("change", {
@@ -818,19 +723,6 @@ class PyIDEWebComponent extends HTMLElement {
           },
         })
       );
-      this.saveToStorage();
-      setTimeout(() => {
-        if (saveBtn) {
-          saveBtn.innerHTML = `Saved ${checkSvg}`;
-          setTimeout(() => {
-            const btn = this.shadowRoot?.getElementById("saveBtn");
-            if (btn) {
-              btn.textContent = btn.dataset.originalText || "Save";
-              btn.disabled = false;
-            }
-          }, 1200);
-        }
-      }, 150);
     }
   }
 
@@ -850,43 +742,6 @@ class PyIDEWebComponent extends HTMLElement {
     );
 
     this.runCode(activeFile.content);
-  }
-
-  handleSave() {
-    const saveBtn = this.shadowRoot.getElementById("saveBtn");
-    const checkSvg =
-      '<svg viewBox="0 0 16 16" width="14" height="14" style="vertical-align: -2px; margin-left:6px; fill:#4ade80;"><path d="M6.173 13.727L.946 8.5l1.414-1.414 3.813 3.813 7.466-7.466 1.414 1.414z"/></svg>';
-    if (saveBtn) {
-      if (!saveBtn.dataset.originalText)
-        saveBtn.dataset.originalText = saveBtn.textContent || "Save";
-      saveBtn.textContent = "Saving...";
-      saveBtn.disabled = true;
-    }
-
-    this.saveToStorage();
-
-    this.dispatchEvent(
-      new CustomEvent("save", {
-        detail: {
-          files: this.code,
-          output: this.output,
-          timestamp: new Date().toISOString(),
-        },
-      })
-    );
-
-    setTimeout(() => {
-      if (saveBtn) {
-        saveBtn.innerHTML = `Saved ${checkSvg}`;
-        setTimeout(() => {
-          const btn = this.shadowRoot?.getElementById("saveBtn");
-          if (btn) {
-            btn.textContent = btn.dataset.originalText || "Save";
-            btn.disabled = false;
-          }
-        }, 1200);
-      }
-    }, 150);
   }
 
   async loadPyodide() {
@@ -944,7 +799,7 @@ class PyIDEWebComponent extends HTMLElement {
           this.pyodideReady = true;
           this.updateStatus("Ready", "ready");
           this.updateOutput("Ready to run Python code.");
-          this.shadowRoot.getElementById("runBtn").disabled = false;
+          this.querySelector("#runBtn").disabled = false;
         } catch (error) {
           this.updateStatus("Error loading Python", "error");
           this.updateOutput("Error loading Python: " + error);
@@ -1224,7 +1079,6 @@ class PyIDEWebComponent extends HTMLElement {
     this.openFiles.push(id);
     this.selectFile(id);
     this.renderFileTabs();
-    this.saveToStorage();
   }
 
   selectFile(fileId) {
@@ -1234,7 +1088,6 @@ class PyIDEWebComponent extends HTMLElement {
     this.activeFileId = fileId;
     this.loadActiveFile();
     this.renderFileTabs();
-    this.saveToStorage();
   }
 
   closeFile(fileId) {
@@ -1257,7 +1110,6 @@ class PyIDEWebComponent extends HTMLElement {
       }
 
       this.renderFileTabs();
-      this.saveToStorage();
     }
   }
 
@@ -1265,12 +1117,12 @@ class PyIDEWebComponent extends HTMLElement {
     const activeFile = this.getActiveFile();
 
     if (activeFile) {
-      // update CodeMirror if available
-      if (this.codeMirror) {
-        this.codeMirror.setValue(activeFile.content);
+      // update Monaco if available
+      if (this.monacoEditor) {
+        this.monacoEditor.setValue(activeFile.content);
       } else {
         // fallback to textarea editor
-        const editor = this.shadowRoot.getElementById("editor");
+        const editor = this.querySelector("#editor");
         if (editor) {
           editor.value = activeFile.content;
         }
@@ -1281,7 +1133,7 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   renderFileTabs() {
-    const container = this.shadowRoot.getElementById("fileTabs");
+    const container = this.querySelector("#fileTabs");
     const openFiles = this.openFiles
       .map((id) => this.files.find((f) => f.id === id))
       .filter(Boolean);
@@ -1316,13 +1168,13 @@ class PyIDEWebComponent extends HTMLElement {
 
   // UI update methods
   updateStatus(text, type) {
-    const status = this.shadowRoot.getElementById("status");
+    const status = this.querySelector("#status");
     status.textContent = text;
     status.className = `py-ide-status ${type}`;
   }
 
   updateOutput(content) {
-    const output = this.shadowRoot.getElementById("output");
+    const output = this.querySelector("#output");
     if (typeof content === "function") {
       output.innerHTML = content(output.innerHTML);
     } else {
@@ -1333,7 +1185,7 @@ class PyIDEWebComponent extends HTMLElement {
   }
 
   updateRunningIndicator(isRunning) {
-    const runBtn = this.shadowRoot.getElementById("runBtn");
+    const runBtn = this.querySelector("#runBtn");
     const original = runBtn?.dataset?.originalText || "Run";
     const checkSvg =
       '<svg viewBox="0 0 16 16" width="14" height="14" style="vertical-align: -2px; margin-left:6px; fill:#4ade80;"><path d="M6.173 13.727L.946 8.5l1.414-1.414 3.813 3.813 7.466-7.466 1.414 1.414z"/></svg>';
@@ -1346,7 +1198,7 @@ class PyIDEWebComponent extends HTMLElement {
     } else {
       runBtn.innerHTML = `Ran ${checkSvg}`;
       setTimeout(() => {
-        const btn = this.shadowRoot?.getElementById("runBtn");
+        const btn = this.querySelector("#runBtn");
         if (btn) {
           btn.textContent = btn.dataset.originalText || "Run";
           btn.disabled = !this.pyodideReady;
