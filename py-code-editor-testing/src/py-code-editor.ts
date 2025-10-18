@@ -200,6 +200,16 @@ export class PyCodeEditor extends LitElement {
       border-radius: 4px;
     }
 
+    .console-input {
+      background: transparent;
+      border: none;
+      color: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      outline: none;
+      width: auto;
+    }
+
     @media (max-width: 768px) {
       .py-ide-main {
         flex-direction: column;
@@ -334,6 +344,9 @@ export class PyCodeEditor extends LitElement {
       ).loadPyodide;
 
       this.pyodide = await loadPyodide();
+      this.pyodide.registerJsModule("editor_mod", {
+        requestInput: this.requestInput.bind(this),
+      });
       this.updateStatus("Installing packages...", "loading");
 
       await this.pyodide.loadPackage("micropip");
@@ -344,18 +357,93 @@ export class PyCodeEditor extends LitElement {
         import sys
         import builtins
         from io import StringIO
+        import asyncio
+        import ast
+        from ast import *
+        import copy
+        import editor_mod
         
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         warnings.filterwarnings("ignore", category=FutureWarning)
         
-        def browser_input(prompt_text=""):
-            import js
-            result = js.prompt(str(prompt_text))
-            if result is None:
-                raise KeyboardInterrupt("Input cancelled by user")
-            return str(result)
+        async def browser_input(prompt_text=""):
+            result = await editor_mod.requestInput(str(prompt_text))
+            return result
         
         builtins.input = browser_input
+        
+        def fix_parents(node, parent=None):
+            setattr(node, 'parent', parent)
+            for child in iter_child_nodes(node):
+                fix_parents(child, node)
+        
+        class AsyncInputTransformer(NodeTransformer):
+            def visit_Call(self, node):
+                self.generic_visit(node)
+                if isinstance(node.func, Name) and node.func.id == 'input':
+                    return Await(value=node)
+                return node
+        
+        def propagate_async(tree):
+            changed = True
+            async_funcs = set()
+            while changed:
+                changed = False
+                new_async = set()
+                for node in walk(tree):
+                    if isinstance(node, (FunctionDef, AsyncFunctionDef)):
+                        has_await = False
+                        calls_async = False
+                        for child in walk(node):
+                            if isinstance(child, Await):
+                                has_await = True
+                            if isinstance(child, Call) and isinstance(child.func, Name) and child.func.id in async_funcs:
+                                calls_async = True
+                        if has_await or calls_async:
+                            new_async.add(node.name)
+                            if not isinstance(node, AsyncFunctionDef):
+                                changed = True
+                async_funcs.update(new_async)
+                
+                class MakeAsync(NodeTransformer):
+                    def visit_FunctionDef(self, node):
+                        self.generic_visit(node)
+                        if node.name in async_funcs:
+                            async_node = AsyncFunctionDef(
+                                name=node.name,
+                                args=node.args,
+                                body=node.body,
+                                decorator_list=node.decorator_list,
+                                returns=node.returns,
+                                type_comment=node.type_comment
+                            )
+                            return copy_location(async_node, node)
+                        return node
+                
+                tree = MakeAsync().visit(tree)
+                
+                fix_parents(tree)
+                
+                class AddAwaitToCalls(NodeTransformer):
+                    def visit_Call(self, node):
+                        self.generic_visit(node)
+                        if isinstance(node.func, Name) and node.func.id in async_funcs:
+                            if not isinstance(getattr(node, 'parent', None), Await):
+                                changed = True
+                                return Await(value=node)
+                        return node
+                
+                tree = AddAwaitToCalls().visit(tree)
+            return tree
+        
+        def transform_code(code):
+            try:
+                tree = parse(code)
+                tree = AsyncInputTransformer().visit(tree)
+                tree = propagate_async(tree)
+                return unparse(tree)
+            except SyntaxError as e:
+                raise Exception(f"Syntax Error in code: {str(e)}")
       `);
 
       // Install common packages
@@ -465,11 +553,57 @@ export class PyCodeEditor extends LitElement {
     }
   }
 
+  private async requestInput(prompt: string): Promise<string> {
+    const cleanPrompt = prompt.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // Append the prompt directly to the output element
+    if (this.outputRef.value) {
+      const promptSpan = document.createElement("span");
+      promptSpan.innerHTML = cleanPrompt;
+      this.outputRef.value.appendChild(promptSpan);
+    }
+
+    const inputContainer = document.createElement("span");
+    const inputEl = document.createElement("input");
+    inputEl.type = "text";
+    inputEl.classList.add("console-input");
+    inputContainer.appendChild(inputEl);
+    this.outputRef.value!.appendChild(inputContainer);
+    inputEl.focus();
+
+    return new Promise((resolve) => {
+      inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const value = inputEl.value;
+          const escapedValue = value
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+          // Remove the input element
+          inputEl.remove();
+
+          // Replace the container with just the value text
+          inputContainer.innerHTML = escapedValue;
+
+          this.outputRef.value!.scrollTop = this.outputRef.value!.scrollHeight;
+
+          resolve(value);
+        }
+      });
+    });
+  }
+
   private async handleRun() {
     if (!this.pyodideReady || this.isRunning) return;
 
     this.isRunning = true;
-    this.updateOutput("Running code...\\n");
+    this.updateOutput("");
+
+    // Clear the actual DOM content to remove any lingering input elements
+    if (this.outputRef.value) {
+      this.outputRef.value.innerHTML = "";
+    }
 
     this.dispatchEvent(
       new CustomEvent("submit", {
@@ -477,7 +611,27 @@ export class PyCodeEditor extends LitElement {
       })
     );
 
+    let execCode = ""; // Declare outside to make it accessible in catch block
+
     try {
+      // Transform the code
+      const escapedCode = this.code.replace(/'''/g, "\\'\\'\\'");
+      await this.pyodide.runPythonAsync(
+        `transformed = transform_code('''${escapedCode}''')`
+      );
+      let transformed = this.pyodide.globals.get("transformed");
+
+      // Indent and wrap in async main
+      const indented = transformed
+        .split("\n")
+        .map((line: string) => "  " + line)
+        .join("\n");
+      execCode = `
+async def main():
+${indented}
+await main()
+      `;
+
       let outputBuffer = "";
       let errorBuffer = "";
 
@@ -490,6 +644,12 @@ export class PyCodeEditor extends LitElement {
             !s.includes("certificate verification")
           ) {
             outputBuffer += s + "\\n";
+            // Clear DOM and re-render from buffer
+            if (this.outputRef.value) {
+              this.outputRef.value.innerHTML = this.formatOutputForDisplay(
+                outputBuffer + (errorBuffer ? "\\n" + errorBuffer : "")
+              );
+            }
           }
         },
       });
@@ -503,11 +663,17 @@ export class PyCodeEditor extends LitElement {
             !s.includes("certificate verification")
           ) {
             errorBuffer += s + "\\n";
+            // Clear DOM and re-render from buffer
+            if (this.outputRef.value) {
+              this.outputRef.value.innerHTML = this.formatOutputForDisplay(
+                outputBuffer + (errorBuffer ? "\\n" + errorBuffer : "")
+              );
+            }
           }
         },
       });
 
-      await this.pyodide.runPythonAsync(this.code);
+      await this.pyodide.runPythonAsync(execCode);
 
       let finalOutput = outputBuffer.trim();
       if (errorBuffer.trim()) {
@@ -521,7 +687,6 @@ export class PyCodeEditor extends LitElement {
       }
     } catch (err) {
       const errorString = String(err);
-
       // Auto-install missing modules
       const moduleNotFoundMatch = errorString.match(
         /ModuleNotFoundError.*?'([^']+)'/
@@ -550,7 +715,7 @@ export class PyCodeEditor extends LitElement {
               `\\nSuccessfully installed ${missingModule}\\nRetrying code execution...\\n`
           );
 
-          // Retry execution
+          // Retry execution with transformed code
           let retryOutputBuffer = "";
           this.pyodide.setStdout({
             batched: (s: string) => {
@@ -559,11 +724,12 @@ export class PyCodeEditor extends LitElement {
                 !s.includes("urllib3/connectionpool.py")
               ) {
                 retryOutputBuffer += s + "\\n";
+                this.updateOutput(retryOutputBuffer);
               }
             },
           });
 
-          await this.pyodide.runPythonAsync(this.code);
+          await this.pyodide.runPythonAsync(execCode); // use the same execCode
           const retryOutput = retryOutputBuffer.trim();
 
           const prevOutput = this.output;
@@ -583,7 +749,7 @@ export class PyCodeEditor extends LitElement {
         }
       } else {
         const cleanError = this.formatError(errorString);
-        this.updateOutput(`Error:\\n${cleanError}`);
+        this.updateOutput(this.output + `Error:\\n${cleanError}`);
       }
     } finally {
       this.isRunning = false;
