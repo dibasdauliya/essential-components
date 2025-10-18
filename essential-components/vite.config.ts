@@ -7,6 +7,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
+        activitiesWidget: resolve(__dirname, "activities-widget.html"),
+        pyCodeEditor: resolve(__dirname, "py-code-editor.html"),
       },
     },
   },
