@@ -47,6 +47,7 @@ export class PyCodeEditor extends LitElement {
   @state() private statusText: string = "Loading Python...";
   @state() private statusType: string = "loading";
   @state() private output: string = "Loading Python...";
+  @state() private interactiveMode: boolean = false;
 
   private installedPackages = new Set<string>();
 
@@ -266,7 +267,12 @@ export class PyCodeEditor extends LitElement {
               </button>
             </div>
             <div class="py-ide-output-content" ${ref(this.outputRef)}>
-              ${unsafeHTML(this.formatOutputForDisplay(this.output))}
+              ${this.interactiveMode
+                ? html`<div
+                    id="interactive-console"
+                    style="height: 100%; overflow-y: auto;"
+                  ></div>`
+                : unsafeHTML(this.formatOutputForDisplay(this.output))}
             </div>
           </div>
         </div>
@@ -553,22 +559,33 @@ export class PyCodeEditor extends LitElement {
     }
   }
 
+  private getInteractiveConsole(): HTMLElement | null {
+    return this.shadowRoot?.getElementById("interactive-console") ?? null;
+  }
+
   private async requestInput(prompt: string): Promise<string> {
     const cleanPrompt = prompt.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+    // Switch to interactive mode and append prompt to DOM
+    this.interactiveMode = true;
+
+    // Wait for render
+    await this.updateComplete;
+
+    const consoleEl = this.getInteractiveConsole();
+    if (!consoleEl) return Promise.reject("Interactive console not found");
+
     // Append the prompt directly to the output element
-    if (this.outputRef.value) {
-      const promptSpan = document.createElement("span");
-      promptSpan.innerHTML = cleanPrompt;
-      this.outputRef.value.appendChild(promptSpan);
-    }
+    const promptSpan = document.createElement("span");
+    promptSpan.innerHTML = cleanPrompt;
+    consoleEl.appendChild(promptSpan);
 
     const inputContainer = document.createElement("span");
     const inputEl = document.createElement("input");
     inputEl.type = "text";
     inputEl.classList.add("console-input");
     inputContainer.appendChild(inputEl);
-    this.outputRef.value!.appendChild(inputContainer);
+    consoleEl.appendChild(inputContainer);
     inputEl.focus();
 
     return new Promise((resolve) => {
@@ -583,27 +600,22 @@ export class PyCodeEditor extends LitElement {
           // Remove the input element
           inputEl.remove();
 
-          // Replace the container with just the value text
-          inputContainer.innerHTML = escapedValue;
+          // Replace the container with just the value text and add newline
+          inputContainer.innerHTML = escapedValue + "<br>";
 
-          this.outputRef.value!.scrollTop = this.outputRef.value!.scrollHeight;
+          consoleEl.scrollTop = consoleEl.scrollHeight;
 
           resolve(value);
         }
       });
     });
   }
-
   private async handleRun() {
     if (!this.pyodideReady || this.isRunning) return;
 
     this.isRunning = true;
+    this.interactiveMode = false;
     this.updateOutput("");
-
-    // Clear the actual DOM content to remove any lingering input elements
-    if (this.outputRef.value) {
-      this.outputRef.value.innerHTML = "";
-    }
 
     this.dispatchEvent(
       new CustomEvent("submit", {
@@ -644,11 +656,13 @@ await main()
             !s.includes("certificate verification")
           ) {
             outputBuffer += s + "\\n";
-            // Clear DOM and re-render from buffer
-            if (this.outputRef.value) {
-              this.outputRef.value.innerHTML = this.formatOutputForDisplay(
-                outputBuffer + (errorBuffer ? "\\n" + errorBuffer : "")
-              );
+            // When in interactive mode, append to the interactive console
+            const consoleEl = this.getInteractiveConsole();
+            if (this.interactiveMode && consoleEl) {
+              const outputSpan = document.createElement("span");
+              outputSpan.innerHTML = this.formatOutputForDisplay(s + "\\n");
+              consoleEl.appendChild(outputSpan);
+              consoleEl.scrollTop = consoleEl.scrollHeight;
             }
           }
         },
@@ -663,11 +677,13 @@ await main()
             !s.includes("certificate verification")
           ) {
             errorBuffer += s + "\\n";
-            // Clear DOM and re-render from buffer
-            if (this.outputRef.value) {
-              this.outputRef.value.innerHTML = this.formatOutputForDisplay(
-                outputBuffer + (errorBuffer ? "\\n" + errorBuffer : "")
-              );
+            // When in interactive mode, append to the interactive console
+            const consoleEl = this.getInteractiveConsole();
+            if (this.interactiveMode && consoleEl) {
+              const errorSpan = document.createElement("span");
+              errorSpan.innerHTML = this.formatOutputForDisplay(s + "\\n");
+              consoleEl.appendChild(errorSpan);
+              consoleEl.scrollTop = consoleEl.scrollHeight;
             }
           }
         },
@@ -680,12 +696,18 @@ await main()
         finalOutput += (finalOutput ? "\\n" : "") + errorBuffer.trim();
       }
 
+      // Exit interactive mode and show final output
+      // Lit will automatically remove the interactive console and render the final output
+      this.interactiveMode = false;
+
       if (finalOutput === "") {
         this.updateOutput("=== Output ===\\n(empty)");
       } else {
         this.updateOutput(`=== Output ===\\n${finalOutput}`);
       }
     } catch (err) {
+      this.interactiveMode = false;
+
       const errorString = String(err);
       // Auto-install missing modules
       const moduleNotFoundMatch = errorString.match(
@@ -749,7 +771,7 @@ await main()
         }
       } else {
         const cleanError = this.formatError(errorString);
-        this.updateOutput(this.output + `Error:\\n${cleanError}`);
+        this.updateOutput(`Error:\\n${cleanError}`);
       }
     } finally {
       this.isRunning = false;
@@ -818,6 +840,7 @@ await main()
   }
 
   private clearOutput() {
+    this.interactiveMode = false;
     this.updateOutput(
       this.pyodideReady ? "Ready to run Python code." : "Loading Python..."
     );
