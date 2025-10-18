@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 
 export default defineConfig({
-  base: "/lit-code-editor/",
+  base: "/py-code-editor/",
   build: {
     rollupOptions: {
       input: {

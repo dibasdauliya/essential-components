@@ -342,9 +342,9 @@ export class PyCodeEditor extends LitElement {
 
   private async loadPyodide() {
     try {
-      // @ts-ignore
       const loadPyodide = (
         await import(
+          // @ts-ignore
           "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.mjs"
         )
       ).loadPyodide;
@@ -701,9 +701,9 @@ await main()
       this.interactiveMode = false;
 
       if (finalOutput === "") {
-        this.updateOutput("=== Output ===\\n(empty)");
+        this.updateOutput("(empty)");
       } else {
-        this.updateOutput(`=== Output ===\\n${finalOutput}`);
+        this.updateOutput(`${finalOutput}`);
       }
     } catch (err) {
       this.interactiveMode = false;
